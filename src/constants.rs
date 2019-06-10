@@ -59,7 +59,7 @@ pub const SINGLE_BULLET_PROOF_SIZE: usize = 675;
 pub const MAX_PROOF_SIZE: usize = SINGLE_BULLET_PROOF_SIZE;
 
 /// The maximum size of an optional message embedded in a bullet proof
-pub const BULLET_PROOF_MSG_SIZE: usize = 16;
+pub const BULLET_PROOF_MSG_SIZE: usize = 20;
 
 /// The maximum size of a message embedded in a range proof
 pub const PROOF_MSG_SIZE: usize = BULLET_PROOF_MSG_SIZE;

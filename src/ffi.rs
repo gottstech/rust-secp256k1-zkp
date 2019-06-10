@@ -679,7 +679,6 @@ extern "C" {
 
     pub fn secp256k1_bulletproof_rangeproof_rewind(
         ctx: *const Context,
-        gens: *const BulletproofGenerators,
         value: *mut u64,
         blind: *mut c_uchar,
         proof: *const c_uchar,
