@@ -1,14 +1,22 @@
-[![Build Status](https://dev.azure.com/mimblewimble/rust-secp256k1-zkp/_apis/build/status/quentinlesceller.rust-secp256k1-zkp?branchName=master)](https://dev.azure.com/mimblewimble/rust-secp256k1-zkp/_build/latest?definitionId=3&branchName=master)
+[![Build Status](https://dev.azure.com/gottstech/rust-secp256k1-zkp/_apis/build/status/garyyu.rust-secp256k1-zkp?branchName=master)](https://dev.azure.com/gottstech/rust-secp256k1-zkp/_build/latest?definitionId=3&branchName=master)
 
-### rust-secp256k1
+### rust-secp256k1-zkp
 
-`rust-secp256k1` is a wrapper around [libsecp256k1](https://github.com/bitcoin/secp256k1),
-a C library by Peter Wuille for producing ECDSA signatures using the SECG curve
-`secp256k1`. This library
+This is a rust wrapper around [secp256k1](https://github.com/bitcoin/secp256k1).
+
+This rust library:
+
 * exposes type-safe Rust bindings for all `libsecp256k1` functions
 * implements key generation
 * implements deterministic nonce generation via RFC6979
 * implements many unit tests, adding to those already present in `libsecp256k1`
 * makes no allocations (except in unit tests) for efficiency and use in freestanding implementations
 
-[Full documentation](https://www.wpsoftware.net/rustdoc/secp256k1/)
+### Build and Run
+
+```
+git clone --recursive https://github.com/garyyu/rust-secp256k1-zkp.git
+cd rust-secp256k1-zkp
+cargo build --release
+```
+
