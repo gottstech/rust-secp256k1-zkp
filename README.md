@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/gottstech/rust-secp256k1-zkp.png?branch=master)](https://travis-ci.org/gottstech/rust-secp256k1-zkp)
+[![Build Status](https://travis-ci.org/gottstech/rust-secp256k1-zkp.svg?branch=master)](https://travis-ci.org/gottstech/rust-secp256k1-zkp)
 
 ### rust-secp256k1-zkp
 
