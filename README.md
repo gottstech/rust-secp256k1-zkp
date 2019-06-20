@@ -1,4 +1,4 @@
-[![Build Status](https://dev.azure.com/gottstech/rust-secp256k1-zkp/_apis/build/status/garyyu.rust-secp256k1-zkp?branchName=master)](https://dev.azure.com/gottstech/rust-secp256k1-zkp/_build/latest?definitionId=3&branchName=master)
+[![Build Status](https://travis-ci.org/gottstech/rust-secp256k1-zkp.png?branch=master)](https://travis-ci.org/gottstech/rust-secp256k1-zkp)
 
 ### rust-secp256k1-zkp
 
@@ -15,7 +15,7 @@ This rust library:
 ### Build and Run
 
 ```
-git clone --recursive https://github.com/garyyu/rust-secp256k1-zkp.git
+git clone --recursive https://github.com/gottstech/rust-secp256k1-zkp.git
 cd rust-secp256k1-zkp
 cargo build --release
 ```
