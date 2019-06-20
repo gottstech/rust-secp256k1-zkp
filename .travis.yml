@@ -1,15 +1,47 @@
-language: rust
-cache: cargo
+# Copyright 2019 The Grin & Gotts Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 dist: trusty
 sudo: false
+
+language: rust
+
 rust:
   - stable
+  - nightly
+  - beta
+
+git:
+  depth: false
+
+cache:
+  cargo: true
+  timeout: 240
+  directories:
+    - $HOME/.cargo
+    - $TRAVIS_BUILD_DIR/target
+
+env:
+  global:
+    - RUST_BACKTRACE="1"
+    - RUST_FLAGS="-C debug-assertions"
 
 matrix:
   include:
-    - rust: stable
-    - rust: beta
-    - rust: nightly
+    - os: linux
+    - os: osx
+    - os: windows
 
 script:
   - |
@@ -17,5 +49,5 @@ script:
       cargo build --release &&
       cargo test &&
       cargo test --release &&
-      cargo bench &&
       cargo doc
+
