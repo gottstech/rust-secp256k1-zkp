@@ -52,7 +52,6 @@ extern crate zeroize;
 use libc::size_t;
 use std::{error, fmt, ops, ptr};
 use rand::Rng;
-use serialize::hex::ToHex;
 
 #[macro_use]
 mod macros;

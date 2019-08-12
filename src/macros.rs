@@ -212,7 +212,7 @@ macro_rules! impl_pretty_debug {
     ($thing:ident) => {
         impl ::std::fmt::Debug for $thing {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                write!(f, "{}({})", stringify!($thing), &self[..].to_hex())
+                write!(f, "{}({})", stringify!($thing), hex::encode(&self[..]))
             }
         }
      }
@@ -222,7 +222,7 @@ macro_rules! impl_raw_debug {
     ($thing:ident) => {
         impl ::std::fmt::Debug for $thing {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                write!(f, "{}", &self[..].to_hex())
+                write!(f, "{}", hex::encode(&self[..]))
             }
         }
      }

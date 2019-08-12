@@ -17,7 +17,6 @@
 //! Direct bindings to the underlying C library functions. These should
 //! not be needed for most users.
 use std::mem;
-use crate::serialize::hex::ToHex;
 
 use libc::{c_int, c_uchar, c_uint, c_void, size_t};
 
