@@ -19,6 +19,7 @@ use std::marker;
 use arrayvec::ArrayVec;
 use rand::Rng;
 use crate::serialize::{Decoder, Decodable, Encoder, Encodable};
+use crate::serialize::hex::ToHex;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 
 use super::{Secp256k1, ContextFlag};

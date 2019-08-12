@@ -22,6 +22,7 @@ use std::fmt;
 use std::mem;
 use std::ptr;
 use std::u64;
+use crate::serialize::hex::ToHex;
 
 use crate::ContextFlag;
 use crate::Error::{self, InvalidPublicKey};
