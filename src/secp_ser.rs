@@ -14,9 +14,12 @@
 
 //! Sane serialization & deserialization of cryptographic structures into hex
 
-use std::fmt;
+use crate::{
+    AGG_SIGNATURE_SIZE, MAX_PROOF_SIZE, PEDERSEN_COMMITMENT_SIZE, RECOVERABLE_AGG_SIGNATURE_SIZE,
+    SECRET_KEY_SIZE,
+};
 use serde::{self, Deserialize, Deserializer, Serializer};
-use crate::{SECRET_KEY_SIZE, PEDERSEN_COMMITMENT_SIZE, MAX_PROOF_SIZE, AGG_SIGNATURE_SIZE, RECOVERABLE_AGG_SIGNATURE_SIZE};
+use std::fmt;
 
 struct ExpectedString(pub String);
 
@@ -26,22 +29,23 @@ impl serde::de::Expected for ExpectedString {
     }
 }
 
-
 /// Creates a [u8; SECRET_KEY_SIZE] from a hex string
 pub fn hex_to_key<'de, D>(deserializer: D) -> Result<[u8; SECRET_KEY_SIZE], D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     String::deserialize(deserializer)
         .and_then(|string| {
-            hex::decode(string)
-                .map_err(|err| serde::de::Error::custom(err.to_string()))
+            hex::decode(string).map_err(|err| serde::de::Error::custom(err.to_string()))
         })
         .and_then(|bytes: Vec<u8>| {
             let mut ret = [0u8; SECRET_KEY_SIZE];
             match bytes.len() {
                 SECRET_KEY_SIZE => ret[..].copy_from_slice(&bytes),
-                _ => Err(serde::de::Error::invalid_length(bytes.len(), &ExpectedString("a 32-byte hex string".to_owned())))?,
+                _ => Err(serde::de::Error::invalid_length(
+                    bytes.len(),
+                    &ExpectedString("a 32-byte hex string".to_owned()),
+                ))?,
             }
             Ok(ret)
         })
@@ -49,41 +53,43 @@ pub fn hex_to_key<'de, D>(deserializer: D) -> Result<[u8; SECRET_KEY_SIZE], D::E
 
 /// Creates a [u8; AGG_SIGNATURE_SIZE] from a hex string
 pub fn hex_to_sig<'de, D>(deserializer: D) -> Result<[u8; AGG_SIGNATURE_SIZE], D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     use serde::de::Error;
     String::deserialize(deserializer)
-        .and_then(|string| {
-            hex::decode(string)
-                .map_err(|err| Error::custom(err.to_string()))
-        })
+        .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
         .and_then(|bytes: Vec<u8>| {
             let mut ret = [0u8; AGG_SIGNATURE_SIZE];
             match bytes.len() {
                 AGG_SIGNATURE_SIZE => ret[..].copy_from_slice(&bytes),
-                _ => Err(serde::de::Error::invalid_length(bytes.len(), &ExpectedString("a 64-byte hex string".to_owned())))?,
+                _ => Err(serde::de::Error::invalid_length(
+                    bytes.len(),
+                    &ExpectedString("a 64-byte hex string".to_owned()),
+                ))?,
             }
             Ok(ret)
         })
 }
 
 /// Creates a [u8; RECOVERABLE_AGG_SIGNATURE_SIZE] from a hex string
-pub fn hex_to_rsig<'de, D>(deserializer: D) -> Result<[u8; RECOVERABLE_AGG_SIGNATURE_SIZE], D::Error>
-    where
-        D: Deserializer<'de>,
+pub fn hex_to_rsig<'de, D>(
+    deserializer: D,
+) -> Result<[u8; RECOVERABLE_AGG_SIGNATURE_SIZE], D::Error>
+where
+    D: Deserializer<'de>,
 {
     use serde::de::Error;
     String::deserialize(deserializer)
-        .and_then(|string| {
-            hex::decode(string)
-                .map_err(|err| Error::custom(err.to_string()))
-        })
+        .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
         .and_then(|bytes: Vec<u8>| {
             let mut ret = [0u8; RECOVERABLE_AGG_SIGNATURE_SIZE];
             match bytes.len() {
                 RECOVERABLE_AGG_SIGNATURE_SIZE => ret[..].copy_from_slice(&bytes),
-                _ => Err(serde::de::Error::invalid_length(bytes.len(), &ExpectedString("a 65-byte hex string".to_owned())))?,
+                _ => Err(serde::de::Error::invalid_length(
+                    bytes.len(),
+                    &ExpectedString("a 65-byte hex string".to_owned()),
+                ))?,
             }
             Ok(ret)
         })
@@ -91,20 +97,20 @@ pub fn hex_to_rsig<'de, D>(deserializer: D) -> Result<[u8; RECOVERABLE_AGG_SIGNA
 
 /// Creates a [u8; PEDERSEN_COMMITMENT_SIZE] from a hex string
 pub fn hex_to_commit<'de, D>(deserializer: D) -> Result<[u8; PEDERSEN_COMMITMENT_SIZE], D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     use serde::de::Error;
     String::deserialize(deserializer)
-        .and_then(|string| {
-            hex::decode(string)
-                .map_err(|err| Error::custom(err.to_string()))
-        })
+        .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
         .and_then(|bytes: Vec<u8>| {
             let mut ret = [0u8; PEDERSEN_COMMITMENT_SIZE];
             match bytes.len() {
                 PEDERSEN_COMMITMENT_SIZE => ret[..].copy_from_slice(&bytes),
-                _ => Err(serde::de::Error::invalid_length(bytes.len(), &ExpectedString("a 33-byte hex string".to_owned())))?,
+                _ => Err(serde::de::Error::invalid_length(
+                    bytes.len(),
+                    &ExpectedString("a 33-byte hex string".to_owned()),
+                ))?,
             }
             Ok(ret)
         })
@@ -112,20 +118,20 @@ pub fn hex_to_commit<'de, D>(deserializer: D) -> Result<[u8; PEDERSEN_COMMITMENT
 
 /// Creates a [u8; MAX_PROOF_SIZE] from a hex string
 pub fn hex_to_bp<'de, D>(deserializer: D) -> Result<[u8; MAX_PROOF_SIZE], D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     use serde::de::Error;
     String::deserialize(deserializer)
-        .and_then(|string| {
-            hex::decode(string)
-                .map_err(|err| Error::custom(err.to_string()))
-        })
+        .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
         .and_then(|bytes: Vec<u8>| {
             let mut ret = [0u8; MAX_PROOF_SIZE];
             match bytes.len() {
                 MAX_PROOF_SIZE => ret[..].copy_from_slice(&bytes),
-                _ => Err(serde::de::Error::invalid_length(bytes.len(), &ExpectedString("a 675-byte hex string".to_owned())))?,
+                _ => Err(serde::de::Error::invalid_length(
+                    bytes.len(),
+                    &ExpectedString("a 675-byte hex string".to_owned()),
+                ))?,
             }
             Ok(ret)
         })
@@ -133,46 +139,41 @@ pub fn hex_to_bp<'de, D>(deserializer: D) -> Result<[u8; MAX_PROOF_SIZE], D::Err
 
 /// Creates a Vec<u8> from a hex string
 pub fn hex_to_u8<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
-    where
-        D: Deserializer<'de>,
+where
+    D: Deserializer<'de>,
 {
     use serde::de::Error;
     String::deserialize(deserializer)
-        .and_then(|string| {
-            hex::decode(string)
-                .map_err(|err| Error::custom(err.to_string()))
-        })
-        .and_then(|bytes: Vec<u8>| {
-            Ok(bytes)
-        })
+        .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
+        .and_then(|bytes: Vec<u8>| Ok(bytes))
 }
 
 /// Serializes a [u8] into a hex string
 pub fn u8_to_hex<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+where
+    S: Serializer,
 {
     serializer.serialize_str(&hex::encode(&bytes[..]))
 }
 
 /// Serializes a secp SecretKey to and from hex
 pub mod seckey_serde {
-    use serde::{Deserialize, Deserializer, Serializer};
-    use crate::SecretKey;
     use crate::static_secp_instance;
+    use crate::SecretKey;
+    use serde::{Deserialize, Deserializer, Serializer};
 
     ///
     pub fn serialize<S>(key: &SecretKey, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         serializer.serialize_str(&hex::encode(key.0))
     }
 
     ///
     pub fn deserialize<'de, D>(deserializer: D) -> Result<SecretKey, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let static_secp = static_secp_instance();
@@ -187,13 +188,13 @@ pub mod seckey_serde {
 
 /// Serializes a secp PublicKey to and from hex
 pub mod pubkey_serde {
+    use crate::{static_secp_instance, PublicKey};
     use serde::{Deserialize, Deserializer, Serializer};
-    use crate::{PublicKey, static_secp_instance};
 
     ///
     pub fn serialize<S>(key: &PublicKey, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         let static_secp = static_secp_instance();
         serializer.serialize_str(&hex::encode(key.serialize_vec(&static_secp, true)))
@@ -201,8 +202,8 @@ pub mod pubkey_serde {
 
     ///
     pub fn deserialize<'de, D>(deserializer: D) -> Result<PublicKey, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let static_secp = static_secp_instance();
@@ -217,13 +218,13 @@ pub mod pubkey_serde {
 
 /// Serializes a secp PublicKey to and from hex
 pub mod pubkey_uncompressed_serde {
+    use crate::{static_secp_instance, PublicKey};
     use serde::{Deserialize, Deserializer, Serializer};
-    use crate::{PublicKey, static_secp_instance};
 
     ///
     pub fn serialize<S>(key: &PublicKey, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         let static_secp = static_secp_instance();
         serializer.serialize_str(&hex::encode(key.serialize_vec(&static_secp, false)))
@@ -231,8 +232,8 @@ pub mod pubkey_uncompressed_serde {
 
     ///
     pub fn deserialize<'de, D>(deserializer: D) -> Result<PublicKey, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         use serde::de::Error;
         let static_secp = static_secp_instance();
@@ -247,14 +248,14 @@ pub mod pubkey_uncompressed_serde {
 
 /// Serializes an Option<secp::Signature> to and from hex
 pub mod option_sig_serde {
-    use serde::{Deserialize, Deserializer, Serializer};
-    use serde::de::Error;
     use crate::static_secp_instance;
+    use serde::de::Error;
+    use serde::{Deserialize, Deserializer, Serializer};
 
     ///
     pub fn serialize<S>(sig: &Option<crate::Signature>, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         let static_secp = static_secp_instance();
         match sig {
@@ -267,8 +268,8 @@ pub mod option_sig_serde {
 
     ///
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<crate::Signature>, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let static_secp = static_secp_instance();
         Option::<String>::deserialize(deserializer).and_then(|res| match res {
@@ -288,14 +289,14 @@ pub mod option_sig_serde {
 
 /// Serializes a secp::Signature to and from hex
 pub mod sig_serde {
-    use serde::{Deserialize, Deserializer, Serializer};
-    use serde::de::Error;
     use crate::static_secp_instance;
+    use serde::de::Error;
+    use serde::{Deserialize, Deserializer, Serializer};
 
     ///
     pub fn serialize<S>(sig: &crate::Signature, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         let static_secp = static_secp_instance();
         serializer.serialize_str(&hex::encode(sig.serialize_compact(&static_secp).to_vec()))
@@ -303,8 +304,8 @@ pub mod sig_serde {
 
     ///
     pub fn deserialize<'de, D>(deserializer: D) -> Result<crate::Signature, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         let static_secp = static_secp_instance();
         String::deserialize(deserializer)
@@ -322,13 +323,13 @@ pub mod sig_serde {
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::sign_single;
+    use crate::{Commitment, Message, Signature};
+    use crate::{ContextFlag, Secp256k1};
     use crate::{PublicKey, SecretKey};
-    use crate::{Message, Signature, Commitment};
-    use crate::{Secp256k1, ContextFlag};
-    use crate::{sign_single};
 
-    use serde_json;
     use serde::{self, Deserialize, Serialize};
+    use serde_json;
 
     use rand::{thread_rng, Rng};
 

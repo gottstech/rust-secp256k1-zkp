@@ -475,7 +475,11 @@ mod tests {
         let msg = Message::from_slice(&msg).unwrap();
         let sig = sign_single(&secp, &msg, &sk, None, None, None, None, None).unwrap();
         let der = sig.serialize_der(&secp);
-        println!("schnorr signature len: {}, der: {}", der.len(), hex::encode(der.clone()));
+        println!(
+            "schnorr signature len: {}, der: {}",
+            der.len(),
+            hex::encode(der.clone())
+        );
 
         println!(
             "Verifying aggsig single: {:?}, msg: {:?}, pk:{:?}",

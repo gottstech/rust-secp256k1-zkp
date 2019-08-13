@@ -17,8 +17,8 @@
 
 use libc::size_t;
 use rand::Rng;
-use std::{error, fmt, ops, ptr};
 use serde::{self, Deserialize, Serialize};
+use std::{error, fmt, ops, ptr};
 
 use crate::constants;
 use crate::ffi;
@@ -358,7 +358,7 @@ impl ops::Index<ops::RangeFull> for Signature {
 #[derive(Serialize, Deserialize)]
 pub struct Message(
     #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_key")]
-    pub [u8; constants::MESSAGE_SIZE]
+    pub  [u8; constants::MESSAGE_SIZE],
 );
 impl Copy for Message {}
 impl_array_newtype!(Message, u8, constants::MESSAGE_SIZE);
@@ -806,7 +806,11 @@ mod tests {
             let (sk, _) = s.generate_keypair(&mut thread_rng()).unwrap();
             let sig1 = s.sign(&msg, &sk).unwrap();
             let der = sig1.serialize_der(&s);
-            println!("ecdsa signature len: {}, der: {}", der.len(), hex::encode(der.clone()));
+            println!(
+                "ecdsa signature len: {}, der: {}",
+                der.len(),
+                hex::encode(der.clone())
+            );
             let sig2 = Signature::from_der(&s, &der[..]).unwrap();
             assert_eq!(sig1, sig2);
 

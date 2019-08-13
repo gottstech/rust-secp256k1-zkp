@@ -25,7 +25,7 @@ use std::u64;
 use crate::ContextFlag;
 use crate::Error::{self, InvalidPublicKey};
 use crate::Secp256k1;
-use crate::{hex_to_commit, hex_to_bp, hex_to_u8, u8_to_hex};
+use crate::{hex_to_bp, hex_to_commit, hex_to_u8, u8_to_hex};
 
 use super::{Message, Signature};
 use crate::aggsig::ZERO_256;
@@ -80,7 +80,7 @@ impl CommitmentInternal {
 #[derive(Serialize, Deserialize)]
 pub struct Commitment(
     #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_commit")]
-    pub [u8; constants::PEDERSEN_COMMITMENT_SIZE]
+    pub  [u8; constants::PEDERSEN_COMMITMENT_SIZE],
 );
 impl Copy for Commitment {}
 impl_array_newtype!(Commitment, u8, constants::PEDERSEN_COMMITMENT_SIZE);
@@ -202,8 +202,7 @@ impl RangeProof {
 /// passing in the same nonce that was used to originally create the range proof.
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ProofMessage(
-    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_u8")]
-    Vec<u8>
+    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_u8")] Vec<u8>,
 );
 
 impl ProofMessage {
@@ -523,7 +522,7 @@ impl Secp256k1 {
 
     /// Produces a range proof for the provided value, using min and max bounds, relying
     /// on the blinding factor and commitment.
-    #[deprecated(since="0.7.7", note="please use `bullet_proof` instead")]
+    #[deprecated(since = "0.7.7", note = "please use `bullet_proof` instead")]
     pub fn range_proof(
         &self,
         min: u64,
@@ -586,7 +585,7 @@ impl Secp256k1 {
     }
 
     /// Verify a proof that a committed value is within a range.
-    #[deprecated(since="0.7.7", note="please use `verify_bullet_proof` instead")]
+    #[deprecated(since = "0.7.7", note = "please use `verify_bullet_proof` instead")]
     pub fn verify_range_proof(
         &self,
         commit: Commitment,
@@ -622,7 +621,7 @@ impl Secp256k1 {
 
     /// Verify a range proof and rewind the proof to recover information
     /// sent by its author.
-    #[deprecated(since="0.7.7", note="please use `rewind_bullet_proof` instead")]
+    #[deprecated(since = "0.7.7", note = "please use `rewind_bullet_proof` instead")]
     pub fn rewind_range_proof(
         &self,
         commit: Commitment,

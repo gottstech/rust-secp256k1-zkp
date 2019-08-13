@@ -22,8 +22,8 @@ use serde::{self, Deserialize, Serialize};
 use crate::constants;
 use crate::ffi;
 use crate::types::Error::{self, *};
-use crate::{ContextFlag, Secp256k1};
 use crate::{hex_to_key, u8_to_hex};
+use crate::{ContextFlag, Secp256k1};
 
 use zeroize::Zeroize;
 
@@ -32,7 +32,7 @@ use zeroize::Zeroize;
 #[zeroize(drop)]
 pub struct SecretKey(
     #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_key")]
-    pub [u8; constants::SECRET_KEY_SIZE]
+    pub  [u8; constants::SECRET_KEY_SIZE],
 );
 impl_array_newtype!(SecretKey, u8, constants::SECRET_KEY_SIZE);
 impl_pretty_debug!(SecretKey);
@@ -236,11 +236,7 @@ impl PublicKey {
     /// Serialize the key as a byte-encoded pair of values. In compressed form
     /// the y-coordinate is represented by only a single bit, as x determines
     /// it up to one bit.
-    pub fn serialize_vec(
-        &self,
-        secp: &Secp256k1,
-        compressed: bool,
-    ) -> Vec<u8> {
+    pub fn serialize_vec(&self, secp: &Secp256k1, compressed: bool) -> Vec<u8> {
         // This must be 72 for compatibility with the `ArrayVec` library.
         let mut ret = ArrayVec::<[u8; 72]>::new();
 
@@ -316,8 +312,8 @@ mod test {
     use super::{PublicKey, SecretKey};
 
     use self::rand_core::impls;
-    use rand::{thread_rng, Error, RngCore};
     use crate::secp_ser;
+    use rand::{thread_rng, Error, RngCore};
 
     use crate::key::ONE_KEY;
     use std::slice::from_raw_parts;
@@ -501,10 +497,12 @@ mod test {
         assert!(serde_json::from_str::<PublicKey>(zero33).is_err());
         assert!(serde_json::from_str::<SecretKey>(zero33).is_err());
 
-        let trailing66: [u8; 66] = [4,149,16,196,140,38,92,239,179,65,59,224,230,183,91,238,240,46,186,252,
-                        175,102,52,249,98,178,123,72,50,171,196,254,236,1,189,143,242,227,16,87,
-                        247,183,162,68,237,140,92,205,151,129,166,58,111,96,123,64,180,147,51,12,
-                        209,89,236,213,206,17];
+        let trailing66: [u8; 66] = [
+            4, 149, 16, 196, 140, 38, 92, 239, 179, 65, 59, 224, 230, 183, 91, 238, 240, 46, 186,
+            252, 175, 102, 52, 249, 98, 178, 123, 72, 50, 171, 196, 254, 236, 1, 189, 143, 242,
+            227, 16, 87, 247, 183, 162, 68, 237, 140, 92, 205, 151, 129, 166, 58, 111, 96, 123, 64,
+            180, 147, 51, 12, 209, 89, 236, 213, 206, 17,
+        ];
         let trailing66_str = format!(r#""{}""#, hex::encode(trailing66.to_vec()));
         assert!(serde_json::from_str::<PublicKey>(&trailing66_str).is_err());
 
