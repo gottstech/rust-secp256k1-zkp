@@ -1,7 +1,6 @@
 [package]
-
 name = "gotts_secp256k1zkp"
-version = "0.7.7"
+version = "0.7.8"
 authors = [ "Gotts Developers <gotts.tech@protonmail.com>", 
             "Grin Developers <mimblewimble@lists.launchpad.net>",
             "Dawid Ciężarkiewicz <dpc@ucore.info>",
@@ -9,12 +8,12 @@ authors = [ "Gotts Developers <gotts.tech@protonmail.com>",
 license = "CC0-1.0"
 homepage = "https://gotts.tech"
 repository = "https://github.com/gottstech/rust-secp256k1-zkp"
-description = "Grin & Gotts's fork with Zero-Knowledge extensions of Rust bindings for Pieter Wuille's `libsecp256k1` library. Implements ECDSA for the SECG elliptic curve group secp256k1 and related utilities."
+description = "Fork with Zero-Knowledge extensions of Rust bindings for Pieter Wuille's `libsecp256k1` library. Implements ECDSA for the SECG elliptic curve group secp256k1 and related utilities."
 keywords = [ "crypto", "secp256k1", "gotts", "bitcoin", "zero-knowledge" ]
 readme = "README.md"
 edition = "2018"
-
 build = "build.rs"
+
 [build-dependencies]
 cc = "1.0"
 
