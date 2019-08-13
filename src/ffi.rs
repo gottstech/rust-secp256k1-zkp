@@ -17,8 +17,9 @@
 //! Direct bindings to the underlying C library functions. These should
 //! not be needed for most users.
 use std::mem;
-
 use libc::{c_int, c_uchar, c_uint, c_void, size_t};
+use serde::{self, Deserialize, Serialize};
+use crate::{hex_to_key, hex_to_sig, hex_to_rsig, u8_to_hex};
 
 /// Flag for context to enable no precomputation
 pub const SECP256K1_START_NONE: c_uint = (1 << 0) | 0;
@@ -75,7 +76,11 @@ impl_raw_debug!(Generator);
 
 /// Library-internal representation of a Secp256k1 public key
 #[repr(C)]
-pub struct PublicKey(pub [c_uchar; 64]);
+#[derive(Serialize, Deserialize)]
+pub struct PublicKey(
+    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_sig")]
+    pub [c_uchar; 64]
+);
 impl Copy for PublicKey {}
 impl_array_newtype!(PublicKey, c_uchar, 64);
 impl_raw_debug!(PublicKey);
@@ -89,21 +94,33 @@ impl PublicKey {
 
 /// Library-internal representation of a Secp256k1 signature
 #[repr(C)]
-pub struct Signature(pub [c_uchar; 64]);
+#[derive(Serialize, Deserialize)]
+pub struct Signature(
+    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_sig")]
+    pub [c_uchar; 64]
+);
 impl Copy for Signature {}
 impl_array_newtype!(Signature, c_uchar, 64);
 impl_raw_debug!(Signature);
 
 /// Library-internal representation of a Secp256k1 signature + recovery ID
 #[repr(C)]
-pub struct RecoverableSignature([c_uchar; 65]);
+#[derive(Serialize, Deserialize)]
+pub struct RecoverableSignature(
+    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_rsig")]
+    [c_uchar; 65]
+);
 impl Copy for RecoverableSignature {}
 impl_array_newtype!(RecoverableSignature, c_uchar, 65);
 impl_raw_debug!(RecoverableSignature);
 
 /// Library-internal representation of a Secp256k1 aggsig partial signature
 #[repr(C)]
-pub struct AggSigPartialSignature([c_uchar; 32]);
+#[derive(Serialize, Deserialize)]
+pub struct AggSigPartialSignature(
+    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_key")]
+    [c_uchar; 32]
+);
 impl Copy for AggSigPartialSignature {}
 impl_array_newtype!(AggSigPartialSignature, c_uchar, 32);
 impl_raw_debug!(AggSigPartialSignature);
@@ -148,6 +165,7 @@ impl SharedSecret {
 extern "C" {
     pub static secp256k1_nonce_function_rfc6979: NonceFn;
 
+    #[allow(dead_code)]
     pub static secp256k1_nonce_function_default: NonceFn;
 
     // Contexts
@@ -168,6 +186,7 @@ extern "C" {
     pub fn secp256k1_scratch_space_destroy(sp: *mut ScratchSpace);
 
     // Generator
+    #[allow(dead_code)]
     pub fn secp256k1_generator_generate(cx: *const Context,
                                         gen: *mut Generator,
                                         seed32: *const c_uchar)
@@ -528,7 +547,8 @@ extern "C" {
 		n: size_t,
 	) -> *mut BulletproofGenerators;
 
-	pub fn secp256k1_bulletproof_generators_destroy(
+    #[allow(dead_code)]
+    pub fn secp256k1_bulletproof_generators_destroy(
 		ctx: *const Context,
 		gen: *mut BulletproofGenerators,
 	);
