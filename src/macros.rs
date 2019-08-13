@@ -123,9 +123,6 @@ macro_rules! impl_array_newtype {
         impl ::std::hash::Hash for $thing {
           fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
             state.write(&self.0)
-            // for n in 0..self.len() {
-            //   state.write_u8(self.0[n]);
-            // }
           }
         }
 
@@ -215,11 +212,7 @@ macro_rules! impl_pretty_debug {
     ($thing:ident) => {
         impl ::std::fmt::Debug for $thing {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                write!(f, "{}(", stringify!($thing))?;
-                for i in self[..].iter().cloned() {
-                    write!(f, "{:02x}", i)?;
-                }
-                write!(f, ")")
+                write!(f, "{}({})", stringify!($thing), hex::encode(&self[..]))
             }
         }
      }
@@ -229,10 +222,7 @@ macro_rules! impl_raw_debug {
     ($thing:ident) => {
         impl ::std::fmt::Debug for $thing {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                for i in self[..].iter().cloned() {
-                    write!(f, "{:02x}", i)?;
-                }
-                Ok(())
+                write!(f, "{}", hex::encode(&self[..]))
             }
         }
      }
