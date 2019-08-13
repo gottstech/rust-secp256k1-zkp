@@ -30,14 +30,6 @@ macro_rules! impl_array_newtype {
                 let &mut $thing(ref mut dat) = self;
                 dat.as_mut_ptr()
             }
-
-            #[inline]
-            /// Returns the length of the object as an array
-            pub fn len(&self) -> usize { $len }
-
-            #[inline]
-            /// Returns whether the object as an array is empty
-            pub fn is_empty(&self) -> bool { false }
         }
 
         impl AsRef<[u8]> for $thing {
@@ -59,12 +51,10 @@ macro_rules! impl_array_newtype {
             #[inline]
             fn clone(&self) -> $thing {
                 unsafe {
-                    use std::ptr::copy_nonoverlapping;
                     use std::mem;
+                    use std::ptr::copy_nonoverlapping;
                     let mut ret: $thing = mem::uninitialized();
-                    copy_nonoverlapping(self.as_ptr(),
-                                        ret.as_mut_ptr(),
-                                        mem::size_of::<$thing>());
+                    copy_nonoverlapping(self.as_ptr(), ret.as_mut_ptr(), mem::size_of::<$thing>());
                     ret
                 }
             }
@@ -121,91 +111,11 @@ macro_rules! impl_array_newtype {
         }
 
         impl ::std::hash::Hash for $thing {
-          fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
-            state.write(&self.0)
-          }
-        }
-
-        impl crate::serialize::Decodable for $thing {
-            fn decode<D: crate::serialize::Decoder>(d: &mut D) -> Result<$thing, D::Error> {
-                use crate::serialize::Decodable;
-
-                d.read_seq(|d, len| {
-                    if len != $len {
-                        Err(d.error("Invalid length"))
-                    } else {
-                        unsafe {
-                            use std::mem;
-                            let mut ret: [$ty; $len] = mem::uninitialized();
-                            for i in 0..len {
-                                ret[i] = d.read_seq_elt(i, |d| Decodable::decode(d))?;
-                            }
-                            Ok($thing(ret))
-                        }
-                    }
-                })
+            fn hash<H: ::std::hash::Hasher>(&self, state: &mut H) {
+                state.write(&self.0)
             }
         }
-
-        impl crate::serialize::Encodable for $thing {
-            fn encode<S: crate::serialize::Encoder>(&self, s: &mut S)
-                                               -> Result<(), S::Error> {
-                self[..].encode(s)
-            }
-        }
-
-        impl<'de> ::serde::Deserialize<'de> for $thing {
-            fn deserialize<D>(d: D) -> Result<$thing, D::Error>
-                where D: ::serde::Deserializer<'de>
-            {
-                // We have to define the Visitor struct inside the function
-                // to make it local ... all we really need is that it's
-                // local to the macro, but this works too :)
-                struct Visitor {
-                    marker: ::std::marker::PhantomData<$thing>,
-                }
-                impl<'de> ::serde::de::Visitor<'de> for Visitor {
-                    type Value = $thing;
-
-                    #[inline]
-                    fn visit_seq<A>(self, mut a: A) -> Result<$thing, A::Error>
-                        where A: ::serde::de::SeqAccess<'de>
-                    {
-                        unsafe {
-                            use std::mem;
-                            let mut ret: [$ty; $len] = mem::uninitialized();
-                            for i in 0..$len {
-                                ret[i] = match a.next_element()? {
-                                    Some(c) => c,
-                                    None => return Err(::serde::de::Error::invalid_length(i, &self))
-                                };
-                            }
-                            let one_after_last : Option<u8> = a.next_element()?;
-                            if one_after_last.is_some() {
-                                return Err(::serde::de::Error::invalid_length($len + 1, &self));
-                            }
-                            Ok($thing(ret))
-                        }
-                    }
-
-                    fn expecting(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                        write!(f, "a sequence of {} elements", $len)
-                    }
-                }
-
-                // Begin actual function
-                d.deserialize_seq(Visitor { marker: ::std::marker::PhantomData })
-            }
-        }
-
-        impl ::serde::Serialize for $thing {
-            fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
-                where S: ::serde::Serializer
-            {
-                (&self.0[..]).serialize(s)
-            }
-        }
-    }
+    };
 }
 
 macro_rules! impl_pretty_debug {
@@ -215,7 +125,7 @@ macro_rules! impl_pretty_debug {
                 write!(f, "{}({})", stringify!($thing), hex::encode(&self[..]))
             }
         }
-     }
+    };
 }
 
 macro_rules! impl_raw_debug {
@@ -225,15 +135,13 @@ macro_rules! impl_raw_debug {
                 write!(f, "{}", hex::encode(&self[..]))
             }
         }
-     }
+    };
 }
 
 macro_rules! map_vec {
-  ($thing:expr, $mapfn:expr ) => {
-    $thing.iter()
-      .map($mapfn)
-      .collect::<Vec<_>>();
-  }
+    ($thing:expr, $mapfn:expr ) => {
+        $thing.iter().map($mapfn).collect::<Vec<_>>();
+    };
 }
 
 #[cfg(test)]
