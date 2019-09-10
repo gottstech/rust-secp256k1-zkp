@@ -46,7 +46,7 @@ mod macros;
 pub mod aggsig;
 pub mod constants;
 pub mod ecdh;
-mod ffi;
+pub mod ffi;
 pub mod key;
 pub mod pedersen;
 pub mod secp_ser;
