@@ -38,9 +38,7 @@ impl_array_newtype!(SecretKey, u8, constants::SECRET_KEY_SIZE);
 impl_pretty_debug!(SecretKey);
 
 /// The number 0 encoded as a secret key
-pub const ZERO_KEY: SecretKey = SecretKey([
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-]);
+pub const ZERO_KEY: SecretKey = SecretKey([0u8; 32]);
 
 /// The number 1 encoded as a secret key
 pub const ONE_KEY: SecretKey = SecretKey([
