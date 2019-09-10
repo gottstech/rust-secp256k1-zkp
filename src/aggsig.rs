@@ -1,5 +1,6 @@
 // Rust secp256k1 bindings for aggsig functions
 // 2018 The Grin developers
+// 2019 The Gotts Developers
 //
 // To the extent possible under law, the author(s) have dedicated all
 // copyright and related and neighboring rights to this software to
