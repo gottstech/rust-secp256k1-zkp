@@ -1,6 +1,6 @@
 [package]
 name = "gotts_secp256k1zkp"
-version = "0.7.9"
+version = "0.7.10"
 authors = [ "Gotts Developers <gotts.tech@lists.launchpad.net>",
             "Grin Developers <mimblewimble@lists.launchpad.net>",
             "Dawid Ciężarkiewicz <dpc@ucore.info>",
