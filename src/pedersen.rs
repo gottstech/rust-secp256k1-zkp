@@ -380,6 +380,7 @@ impl Secp256k1 {
     }
 
     /// Creates a pedersen commitment from a value and a blinding factor
+    /// Same as commit() except with i64 value instead of u64.
     pub fn commit_i(&self, value: i64, blind: SecretKey) -> Result<Commitment, Error> {
         if self.caps != ContextFlag::Commit {
             return Err(Error::IncapableContext);
