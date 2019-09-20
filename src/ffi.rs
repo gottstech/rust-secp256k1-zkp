@@ -494,6 +494,17 @@ extern "C" {
     ) -> c_int;
 
     // Generates a pedersen commitment: *commit = blind * G + value * G2.
+    // Same as secp256k1_pedersen_commit() except with i64 value instead of u64.
+    pub fn secp256k1_pedersen_commit_i(
+        ctx: *const Context,
+        commit: *mut c_uchar,
+        blind: *const c_uchar,
+        value: i64,
+        value_gen: *const c_uchar,
+        blind_gen: *const c_uchar
+    ) -> c_int;
+
+    // Generates a pedersen commitment: *commit = blind * G + value * G2.
     // The commitment is 33 bytes, the blinding factor and the value are 32 bytes.
     pub fn secp256k1_pedersen_blind_commit(
         ctx: *const Context,
