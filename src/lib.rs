@@ -36,10 +36,7 @@
 #![cfg_attr(all(test, feature = "unstable"), feature(test))]
 #[cfg(all(test, feature = "unstable"))]
 extern crate test;
-
 extern crate serde_json as json;
-#[macro_use]
-extern crate lazy_static;
 
 #[macro_use]
 mod macros;
@@ -74,16 +71,3 @@ pub use types::{
     AggSigPartialSignature, ContextFlag, Error, Message, RecoverableSignature, RecoveryId,
     Secp256k1, Signature,
 };
-
-use std::sync::Arc;
-
-lazy_static! {
-    /// Static reference to a fake secp instance
-    static ref SECP256K1:Arc<types::Secp256k1>
-        = Arc::new(types::Secp256k1::with_caps(types::ContextFlag::Commit));
-}
-
-/// Returns a static fake secp instance, ONLY for those fake/not-used ctx usage
-fn static_secp_instance() -> Arc<types::Secp256k1> {
-    SECP256K1.clone()
-}
