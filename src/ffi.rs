@@ -503,7 +503,7 @@ extern "C" {
         blind: *const c_uchar,
         value: i64,
         value_gen: *const c_uchar,
-        blind_gen: *const c_uchar
+        blind_gen: *const c_uchar,
     ) -> c_int;
 
     // Generates a pedersen commitment: *commit = blind * G + value * G2.

@@ -99,7 +99,11 @@ impl Signature {
         }
 
         unsafe {
-            if ffi::secp256k1_ecdsa_signature_parse_compact(ffi::secp256k1_context_no_precomp, &mut ret, data.as_ptr()) == 1
+            if ffi::secp256k1_ecdsa_signature_parse_compact(
+                ffi::secp256k1_context_no_precomp,
+                &mut ret,
+                data.as_ptr(),
+            ) == 1
             {
                 Ok(Signature(ret))
             } else {
@@ -155,7 +159,11 @@ impl Signature {
         unsafe {
             // Ignore return value, which indicates whether the sig
             // was already normalized. We don't care.
-            ffi::secp256k1_ecdsa_signature_normalize(ffi::secp256k1_context_no_precomp, self.as_mut_ptr(), self.as_ptr());
+            ffi::secp256k1_ecdsa_signature_normalize(
+                ffi::secp256k1_context_no_precomp,
+                self.as_mut_ptr(),
+                self.as_ptr(),
+            );
         }
     }
 
@@ -246,10 +254,7 @@ impl RecoverableSignature {
     /// Converts a compact-encoded byte slice to a signature. This
     /// representation is nonstandard and defined by the libsecp256k1
     /// library.
-    pub fn from_compact(
-        data: &[u8],
-        recid: RecoveryId,
-    ) -> Result<RecoverableSignature, Error> {
+    pub fn from_compact(data: &[u8], recid: RecoveryId) -> Result<RecoverableSignature, Error> {
         let mut ret = unsafe { ffi::RecoverableSignature::blank() };
 
         unsafe {

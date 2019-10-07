@@ -1176,7 +1176,10 @@ mod tests {
 
         assert!(secp.verify_commit_sum(vec![commit_i(-5)], vec![commit_i(-5)],));
         assert!(secp.verify_commit_sum(vec![commit_i(-3), commit_i(-2)], vec![commit_i(-5)]));
-        assert!(secp.verify_commit_sum(vec![commit_i(-2), commit_i(8)], vec![commit_i(-1), commit_i(7)]));
+        assert!(secp.verify_commit_sum(
+            vec![commit_i(-2), commit_i(8)],
+            vec![commit_i(-1), commit_i(7)]
+        ));
     }
 
     #[test]
@@ -1265,7 +1268,6 @@ mod tests {
             vec![commit_i(101, blind_pos)],
             vec![commit_i(127, blind_neg), commit_i(-26, blind_sum)],
         ));
-
     }
 
     #[test]
@@ -1281,7 +1283,7 @@ mod tests {
         let neg_value = 75;
 
         let blind_pos = secp
-            .blind_switch(pos_value, SecretKey::new( &mut thread_rng()))
+            .blind_switch(pos_value, SecretKey::new(&mut thread_rng()))
             .unwrap();
         let blind_neg = secp
             .blind_switch(neg_value, SecretKey::new(&mut thread_rng()))

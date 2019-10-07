@@ -178,8 +178,7 @@ pub mod seckey_serde {
         String::deserialize(deserializer)
             .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
             .and_then(|bytes: Vec<u8>| {
-                SecretKey::from_slice(&bytes)
-                    .map_err(|err| Error::custom(err.to_string()))
+                SecretKey::from_slice(&bytes).map_err(|err| Error::custom(err.to_string()))
             })
     }
 }
@@ -206,8 +205,7 @@ pub mod pubkey_serde {
         String::deserialize(deserializer)
             .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
             .and_then(|bytes: Vec<u8>| {
-                PublicKey::from_slice(&bytes)
-                    .map_err(|err| Error::custom(err.to_string()))
+                PublicKey::from_slice(&bytes).map_err(|err| Error::custom(err.to_string()))
             })
     }
 }
@@ -234,8 +232,7 @@ pub mod pubkey_uncompressed_serde {
         String::deserialize(deserializer)
             .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
             .and_then(|bytes: Vec<u8>| {
-                PublicKey::from_slice(&bytes)
-                    .map_err(|err| Error::custom(err.to_string()))
+                PublicKey::from_slice(&bytes).map_err(|err| Error::custom(err.to_string()))
             })
     }
 }
@@ -251,9 +248,7 @@ pub mod option_sig_serde {
         S: Serializer,
     {
         match sig {
-            Some(sig) => {
-                serializer.serialize_str(&hex::encode(sig.serialize_compact().to_vec()))
-            }
+            Some(sig) => serializer.serialize_str(&hex::encode(sig.serialize_compact().to_vec())),
             None => serializer.serialize_none(),
         }
     }
@@ -301,8 +296,7 @@ pub mod sig_serde {
             .and_then(|bytes: Vec<u8>| {
                 let mut b = [0u8; 64];
                 b.copy_from_slice(&bytes[0..64]);
-                crate::Signature::from_compact(&b)
-                    .map_err(|err| Error::custom(err.to_string()))
+                crate::Signature::from_compact(&b).map_err(|err| Error::custom(err.to_string()))
             })
     }
 }

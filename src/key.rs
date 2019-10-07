@@ -61,7 +61,9 @@ impl SecretKey {
     pub fn new<R: Rng>(rng: &mut R) -> SecretKey {
         let mut data = random_32_bytes(rng);
         unsafe {
-            while ffi::secp256k1_ec_seckey_verify(ffi::secp256k1_context_no_precomp, data.as_ptr()) == 0 {
+            while ffi::secp256k1_ec_seckey_verify(ffi::secp256k1_context_no_precomp, data.as_ptr())
+                == 0
+            {
                 data = random_32_bytes(rng);
             }
         }
@@ -75,7 +77,11 @@ impl SecretKey {
             constants::SECRET_KEY_SIZE => {
                 let mut ret = [0; constants::SECRET_KEY_SIZE];
                 unsafe {
-                    if ffi::secp256k1_ec_seckey_verify(ffi::secp256k1_context_no_precomp, data.as_ptr()) == 0 {
+                    if ffi::secp256k1_ec_seckey_verify(
+                        ffi::secp256k1_context_no_precomp,
+                        data.as_ptr(),
+                    ) == 0
+                    {
                         return Err(InvalidSecretKey);
                     }
                 }
@@ -90,7 +96,11 @@ impl SecretKey {
     /// Adds one secret key to another, modulo the curve order
     pub fn add_assign(&mut self, other: &SecretKey) -> Result<(), Error> {
         unsafe {
-            if ffi::secp256k1_ec_privkey_tweak_add(ffi::secp256k1_context_no_precomp, self.as_mut_ptr(), other.as_ptr()) != 1
+            if ffi::secp256k1_ec_privkey_tweak_add(
+                ffi::secp256k1_context_no_precomp,
+                self.as_mut_ptr(),
+                other.as_ptr(),
+            ) != 1
             {
                 Err(InvalidSecretKey)
             } else {
@@ -103,7 +113,11 @@ impl SecretKey {
     /// Multiplies one secret key by another, modulo the curve order
     pub fn mul_assign(&mut self, other: &SecretKey) -> Result<(), Error> {
         unsafe {
-            if ffi::secp256k1_ec_privkey_tweak_mul(ffi::secp256k1_context_no_precomp, self.as_mut_ptr(), other.as_ptr()) != 1
+            if ffi::secp256k1_ec_privkey_tweak_mul(
+                ffi::secp256k1_context_no_precomp,
+                self.as_mut_ptr(),
+                other.as_ptr(),
+            ) != 1
             {
                 Err(InvalidSecretKey)
             } else {
@@ -116,7 +130,11 @@ impl SecretKey {
     /// Inverses the secret key
     pub fn inv_assign(&mut self) -> Result<(), Error> {
         unsafe {
-            if ffi::secp256k1_ec_privkey_tweak_inv(ffi::secp256k1_context_no_precomp, self.as_mut_ptr()) != 1 {
+            if ffi::secp256k1_ec_privkey_tweak_inv(
+                ffi::secp256k1_context_no_precomp,
+                self.as_mut_ptr(),
+            ) != 1
+            {
                 Err(InvalidSecretKey)
             } else {
                 Ok(())
@@ -128,7 +146,11 @@ impl SecretKey {
     /// Negates the secret key
     pub fn neg_assign(&mut self) -> Result<(), Error> {
         unsafe {
-            if ffi::secp256k1_ec_privkey_tweak_neg(ffi::secp256k1_context_no_precomp, self.as_mut_ptr()) != 1 {
+            if ffi::secp256k1_ec_privkey_tweak_neg(
+                ffi::secp256k1_context_no_precomp,
+                self.as_mut_ptr(),
+            ) != 1
+            {
                 Err(InvalidSecretKey)
             } else {
                 Ok(())
@@ -145,9 +167,7 @@ impl PublicKey {
     }
 
     /// Creates a new public key as the sum of the provided keys
-    pub fn from_combination(
-        in_keys: Vec<&PublicKey>,
-    ) -> Result<PublicKey, Error> {
+    pub fn from_combination(in_keys: Vec<&PublicKey>) -> Result<PublicKey, Error> {
         let mut retkey = PublicKey::new();
         let in_vec: Vec<*const ffi::PublicKey> = in_keys.iter().map(|pk| pk.as_ptr()).collect();
         unsafe {
@@ -354,22 +374,18 @@ mod test {
         assert_eq!(PublicKey::from_slice(&[]), Err(InvalidPublicKey));
         assert_eq!(PublicKey::from_slice(&[1, 2, 3]), Err(InvalidPublicKey));
 
-        let uncompressed = PublicKey::from_slice(
-            &[
-                4, 54, 57, 149, 239, 162, 148, 175, 246, 254, 239, 75, 154, 152, 10, 82, 234, 224,
-                85, 220, 40, 100, 57, 121, 30, 162, 94, 156, 135, 67, 74, 49, 179, 57, 236, 53,
-                162, 124, 149, 144, 168, 77, 74, 30, 72, 211, 229, 110, 111, 55, 96, 193, 86, 227,
-                183, 152, 195, 155, 51, 247, 123, 113, 60, 228, 188,
-            ],
-        );
+        let uncompressed = PublicKey::from_slice(&[
+            4, 54, 57, 149, 239, 162, 148, 175, 246, 254, 239, 75, 154, 152, 10, 82, 234, 224, 85,
+            220, 40, 100, 57, 121, 30, 162, 94, 156, 135, 67, 74, 49, 179, 57, 236, 53, 162, 124,
+            149, 144, 168, 77, 74, 30, 72, 211, 229, 110, 111, 55, 96, 193, 86, 227, 183, 152, 195,
+            155, 51, 247, 123, 113, 60, 228, 188,
+        ]);
         assert!(uncompressed.is_ok());
 
-        let compressed = PublicKey::from_slice(
-            &[
-                3, 23, 183, 225, 206, 31, 159, 148, 195, 42, 67, 115, 146, 41, 248, 140, 11, 3, 51,
-                41, 111, 180, 110, 143, 114, 134, 88, 73, 198, 174, 52, 184, 78,
-            ],
-        );
+        let compressed = PublicKey::from_slice(&[
+            3, 23, 183, 225, 206, 31, 159, 148, 195, 42, 67, 115, 146, 41, 248, 140, 11, 3, 51, 41,
+            111, 180, 110, 143, 114, 134, 88, 73, 198, 174, 52, 184, 78,
+        ]);
         assert!(compressed.is_ok());
     }
 
@@ -379,10 +395,7 @@ mod test {
 
         let (sk1, pk1) = s.generate_keypair(&mut thread_rng()).unwrap();
         assert_eq!(SecretKey::from_slice(&sk1[..]), Ok(sk1));
-        assert_eq!(
-            PublicKey::from_slice(&pk1.serialize_vec(true)[..]),
-            Ok(pk1)
-        );
+        assert_eq!(PublicKey::from_slice(&pk1.serialize_vec(true)[..]), Ok(pk1));
         assert_eq!(
             PublicKey::from_slice(&pk1.serialize_vec(false)[..]),
             Ok(pk1)
@@ -394,27 +407,20 @@ mod test {
         // Zero
         assert_eq!(SecretKey::from_slice(&[0; 32]), Err(InvalidSecretKey));
         // -1
-        assert_eq!(
-            SecretKey::from_slice(&[0xff; 32]),
-            Err(InvalidSecretKey)
-        );
+        assert_eq!(SecretKey::from_slice(&[0xff; 32]), Err(InvalidSecretKey));
         // Top of range
-        assert!(SecretKey::from_slice(
-            &[
-                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                0xFF, 0xFE, 0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C,
-                0xD0, 0x36, 0x41, 0x40
-            ]
-        )
+        assert!(SecretKey::from_slice(&[
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFE, 0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C,
+            0xD0, 0x36, 0x41, 0x40
+        ])
         .is_ok());
         // One past top of range
-        assert!(SecretKey::from_slice(
-            &[
-                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-                0xFF, 0xFE, 0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C,
-                0xD0, 0x36, 0x41, 0x41
-            ]
-        )
+        assert!(SecretKey::from_slice(&[
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0xFF, 0xFE, 0xBA, 0xAE, 0xDC, 0xE6, 0xAF, 0x48, 0xA0, 0x3B, 0xBF, 0xD2, 0x5E, 0x8C,
+            0xD0, 0x36, 0x41, 0x41
+        ])
         .is_err());
     }
 
@@ -704,13 +710,11 @@ mod test {
     fn test_inverse() {
         let s = Secp256k1::new();
 
-        let one = SecretKey::from_slice(
-            &[
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x01,
-            ],
-        )
+        let one = SecretKey::from_slice(&[
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x01,
+        ])
         .unwrap();
 
         let mut one_inv: SecretKey = one.clone();
@@ -755,13 +759,11 @@ mod test {
         sk2.neg_assign().unwrap();
         assert_eq!(sk2, sk1);
 
-        let one = SecretKey::from_slice(
-            &[
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x01,
-            ],
-        )
+        let one = SecretKey::from_slice(&[
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x01,
+        ])
         .unwrap();
 
         let (mut sk1, _) = s.generate_keypair(&mut thread_rng()).unwrap();
