@@ -185,14 +185,14 @@ pub mod seckey_serde {
 
 /// Serializes an Option<PublicKey> to and from hex
 pub mod option_pubkey_serde {
-    use serde::de::Error;
     use crate::PublicKey;
+    use serde::de::Error;
     use serde::{Deserialize, Deserializer, Serializer};
 
     ///
     pub fn serialize<S>(key: &Option<PublicKey>, serializer: S) -> Result<S::Ok, S::Error>
-        where
-            S: Serializer,
+    where
+        S: Serializer,
     {
         match key {
             Some(key) => serializer.serialize_str(&hex::encode(key.serialize_vec(true))),
@@ -202,8 +202,8 @@ pub mod option_pubkey_serde {
 
     ///
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<PublicKey>, D::Error>
-        where
-            D: Deserializer<'de>,
+    where
+        D: Deserializer<'de>,
     {
         Option::<String>::deserialize(deserializer).and_then(|res| match res {
             Some(string) => hex::decode(string.to_string())
@@ -274,8 +274,8 @@ pub mod pubkey_uncompressed_serde {
 
 /// Serializes an Option<Signature> to and from hex
 pub mod option_sig_serde {
-    use serde::de::Error;
     use crate::Signature;
+    use serde::de::Error;
     use serde::{Deserialize, Deserializer, Serializer};
 
     ///
@@ -309,8 +309,8 @@ pub mod option_sig_serde {
 
 /// Serializes a secp::Signature to and from hex
 pub mod sig_serde {
-    use serde::de::Error;
     use crate::Signature;
+    use serde::de::Error;
     use serde::{Deserialize, Deserializer, Serializer};
 
     ///
@@ -377,7 +377,11 @@ mod test {
             let sig = sign_single(&secp, &msg, &sk, None, None, None, None, None).unwrap();
             SerTest {
                 pub_key: PublicKey::from_secret_key(&secp, &sk).unwrap(),
-                opt_pubkey: if msg[0] & 1 == 0 { None } else { Some(PublicKey::from_secret_key(&secp, &sk).unwrap()) },
+                opt_pubkey: if msg[0] & 1 == 0 {
+                    None
+                } else {
+                    Some(PublicKey::from_secret_key(&secp, &sk).unwrap())
+                },
                 opt_sig: Some(sig.clone()),
                 sig: sig.clone(),
                 seckey2: sk.clone(),
