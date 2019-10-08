@@ -183,6 +183,41 @@ pub mod seckey_serde {
     }
 }
 
+/// Serializes an Option<PublicKey> to and from hex
+pub mod option_pubkey_serde {
+    use serde::de::Error;
+    use crate::PublicKey;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    ///
+    pub fn serialize<S>(key: &Option<PublicKey>, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+    {
+        match key {
+            Some(key) => serializer.serialize_str(&hex::encode(key.serialize_vec(true))),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    ///
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<PublicKey>, D::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        Option::<String>::deserialize(deserializer).and_then(|res| match res {
+            Some(string) => hex::decode(string.to_string())
+                .map_err(|err| Error::custom(err.to_string()))
+                .and_then(|bytes: Vec<u8>| {
+                    PublicKey::from_slice(&bytes)
+                        .map(|val| Some(val))
+                        .map_err(|err| Error::custom(err.to_string()))
+                }),
+            None => Ok(None),
+        })
+    }
+}
+
 /// Serializes a secp PublicKey to and from hex
 pub mod pubkey_serde {
     use crate::PublicKey;
@@ -237,13 +272,14 @@ pub mod pubkey_uncompressed_serde {
     }
 }
 
-/// Serializes an Option<secp::Signature> to and from hex
+/// Serializes an Option<Signature> to and from hex
 pub mod option_sig_serde {
     use serde::de::Error;
+    use crate::Signature;
     use serde::{Deserialize, Deserializer, Serializer};
 
     ///
-    pub fn serialize<S>(sig: &Option<crate::Signature>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S>(sig: &Option<Signature>, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
@@ -254,7 +290,7 @@ pub mod option_sig_serde {
     }
 
     ///
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<crate::Signature>, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<Signature>, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -262,9 +298,7 @@ pub mod option_sig_serde {
             Some(string) => hex::decode(string.to_string())
                 .map_err(|err| Error::custom(err.to_string()))
                 .and_then(|bytes: Vec<u8>| {
-                    let mut b = [0u8; 64];
-                    b.copy_from_slice(&bytes[0..64]);
-                    crate::Signature::from_compact(&b)
+                    Signature::from_compact(&bytes)
                         .map(|val| Some(val))
                         .map_err(|err| Error::custom(err.to_string()))
                 }),
@@ -276,6 +310,7 @@ pub mod option_sig_serde {
 /// Serializes a secp::Signature to and from hex
 pub mod sig_serde {
     use serde::de::Error;
+    use crate::Signature;
     use serde::{Deserialize, Deserializer, Serializer};
 
     ///
@@ -287,16 +322,14 @@ pub mod sig_serde {
     }
 
     ///
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<crate::Signature, D::Error>
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Signature, D::Error>
     where
         D: Deserializer<'de>,
     {
         String::deserialize(deserializer)
             .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
             .and_then(|bytes: Vec<u8>| {
-                let mut b = [0u8; 64];
-                b.copy_from_slice(&bytes[0..64]);
-                crate::Signature::from_compact(&b).map_err(|err| Error::custom(err.to_string()))
+                Signature::from_compact(&bytes).map_err(|err| Error::custom(err.to_string()))
             })
     }
 }
@@ -319,6 +352,8 @@ mod test {
     struct SerTest {
         #[serde(with = "pubkey_serde")]
         pub pub_key: PublicKey,
+        #[serde(with = "option_pubkey_serde")]
+        pub opt_pubkey: Option<PublicKey>,
         #[serde(with = "option_sig_serde")]
         pub opt_sig: Option<Signature>,
         #[serde(with = "sig_serde")]
@@ -342,6 +377,7 @@ mod test {
             let sig = sign_single(&secp, &msg, &sk, None, None, None, None, None).unwrap();
             SerTest {
                 pub_key: PublicKey::from_secret_key(&secp, &sk).unwrap(),
+                opt_pubkey: if msg[0] & 1 == 0 { None } else { Some(PublicKey::from_secret_key(&secp, &sk).unwrap()) },
                 opt_sig: Some(sig.clone()),
                 sig: sig.clone(),
                 seckey2: sk.clone(),
