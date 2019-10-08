@@ -34,9 +34,9 @@
 #![cfg_attr(feature = "dev", feature(plugin))]
 #![cfg_attr(feature = "dev", plugin(clippy))]
 #![cfg_attr(all(test, feature = "unstable"), feature(test))]
+extern crate serde_json as json;
 #[cfg(all(test, feature = "unstable"))]
 extern crate test;
-extern crate serde_json as json;
 
 #[macro_use]
 mod macros;
@@ -64,8 +64,8 @@ pub use ecdh::SharedSecret;
 pub use key::{PublicKey, SecretKey, ONE_KEY, ZERO_KEY};
 pub use pedersen::{Commitment, ProofInfo, ProofMessage, ProofRange, RangeProof};
 pub use secp_ser::{
-    hex_to_bp, hex_to_commit, hex_to_key, hex_to_rsig, hex_to_sig, hex_to_u8, option_sig_serde,
-    pubkey_serde, pubkey_uncompressed_serde, seckey_serde, sig_serde, u8_to_hex,
+    hex_to_bp, hex_to_commit, hex_to_key, hex_to_rsig, hex_to_sig, hex_to_u8, option_pubkey_serde,
+    option_sig_serde, pubkey_serde, pubkey_uncompressed_serde, seckey_serde, sig_serde, u8_to_hex,
 };
 pub use types::{
     AggSigPartialSignature, ContextFlag, Error, Message, RecoverableSignature, RecoveryId,
