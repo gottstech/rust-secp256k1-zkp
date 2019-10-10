@@ -361,7 +361,7 @@ impl Secp256k1 {
     }
 
     /// Creates a pedersen commitment from a value and a blinding factor
-    pub fn commit(&self, value: u64, blind: SecretKey) -> Result<Commitment, Error> {
+    pub fn commit(&self, value: u64, blind: &SecretKey) -> Result<Commitment, Error> {
         if self.caps != ContextFlag::Commit {
             return Err(Error::IncapableContext);
         }
@@ -381,7 +381,7 @@ impl Secp256k1 {
 
     /// Creates a pedersen commitment from a value and a blinding factor
     /// Same as commit() except with i64 value instead of u64.
-    pub fn commit_i(&self, value: i64, blind: SecretKey) -> Result<Commitment, Error> {
+    pub fn commit_i(&self, value: i64, blind: &SecretKey) -> Result<Commitment, Error> {
         if self.caps != ContextFlag::Commit {
             return Err(Error::IncapableContext);
         }
@@ -400,7 +400,7 @@ impl Secp256k1 {
     }
 
     /// Creates a pedersen commitment from a two blinding factors
-    pub fn commit_blind(&self, value: SecretKey, blind: SecretKey) -> Result<Commitment, Error> {
+    pub fn commit_blind(&self, value: &SecretKey, blind: &SecretKey) -> Result<Commitment, Error> {
         if self.caps != ContextFlag::Commit {
             return Err(Error::IncapableContext);
         }
@@ -1130,7 +1130,7 @@ mod tests {
         fn commit(value: u64) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             let blinding = ZERO_KEY;
-            secp.commit(value, blinding).unwrap()
+            secp.commit(value, &blinding).unwrap()
         }
         let two_g: [u8; 33] = [
             0x09, 0xc6, 0x04, 0x7f, 0x94, 0x41, 0xed, 0x7d, 0x6d, 0x30, 0x45, 0x40, 0x6e, 0x95,
@@ -1153,7 +1153,7 @@ mod tests {
         fn commit(value: u64) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             let blinding = ZERO_KEY;
-            secp.commit(value, blinding).unwrap()
+            secp.commit(value, &blinding).unwrap()
         }
 
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
@@ -1171,7 +1171,7 @@ mod tests {
         fn commit_i(value: i64) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             let blinding = ZERO_KEY;
-            secp.commit_i(value, blinding).unwrap()
+            secp.commit_i(value, &blinding).unwrap()
         }
 
         assert!(secp.verify_commit_sum(vec![commit_i(-5)], vec![commit_i(-5)],));
@@ -1186,20 +1186,20 @@ mod tests {
     fn test_verify_commit_sum_one_keys() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
 
-        fn commit(value: u64, blinding: SecretKey) -> Commitment {
+        fn commit(value: u64, blinding: &SecretKey) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             secp.commit(value, blinding).unwrap()
         }
 
-        assert!(secp.verify_commit_sum(vec![commit(5, ONE_KEY)], vec![commit(5, ONE_KEY)]));
+        assert!(secp.verify_commit_sum(vec![commit(5, &ONE_KEY)], vec![commit(5, &ONE_KEY)]));
 
         // we expect this not to verify
         // even though the values add up to 0
         // the keys themselves do not add to 0
         assert_eq!(
             secp.verify_commit_sum(
-                vec![commit(3, ONE_KEY), commit(2, ONE_KEY)],
-                vec![commit(5, ONE_KEY)],
+                vec![commit(3, &ONE_KEY), commit(2, &ONE_KEY)],
+                vec![commit(5, &ONE_KEY)],
             ),
             false
         );
@@ -1208,30 +1208,30 @@ mod tests {
         // use the same "sum" of blinding factors on both sides
         let two_key = secp.blind_sum(vec![ONE_KEY, ONE_KEY], vec![]).unwrap();
         assert!(secp.verify_commit_sum(
-            vec![commit(3, ONE_KEY), commit(2, ONE_KEY)],
-            vec![commit(5, two_key)],
+            vec![commit(3, &ONE_KEY), commit(2, &ONE_KEY)],
+            vec![commit(5, &two_key)],
         ));
 
         //--- tests of commit_i ---
 
-        fn commit_i(value: i64, blinding: SecretKey) -> Commitment {
+        fn commit_i(value: i64, blinding: &SecretKey) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             secp.commit_i(value, blinding).unwrap()
         }
 
-        assert!(secp.verify_commit_sum(vec![commit_i(-5, ONE_KEY)], vec![commit_i(-5, ONE_KEY)]));
+        assert!(secp.verify_commit_sum(vec![commit_i(-5, &ONE_KEY)], vec![commit_i(-5, &ONE_KEY)]));
         assert_eq!(
             secp.verify_commit_sum(
-                vec![commit_i(-3, ONE_KEY), commit_i(8, ONE_KEY)],
-                vec![commit_i(5, ONE_KEY)],
+                vec![commit_i(-3, &ONE_KEY), commit_i(8, &ONE_KEY)],
+                vec![commit_i(5, &ONE_KEY)],
             ),
             false
         );
 
         let two_key = secp.blind_sum(vec![ONE_KEY, ONE_KEY], vec![]).unwrap();
         assert!(secp.verify_commit_sum(
-            vec![commit_i(-3, ONE_KEY), commit_i(8, ONE_KEY)],
-            vec![commit_i(5, two_key)],
+            vec![commit_i(-3, &ONE_KEY), commit_i(8, &ONE_KEY)],
+            vec![commit_i(5, &two_key)],
         ));
     }
 
@@ -1239,7 +1239,7 @@ mod tests {
     fn test_verify_commit_sum_random_keys() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
 
-        fn commit(value: u64, blinding: SecretKey) -> Commitment {
+        fn commit(value: u64, blinding: &SecretKey) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             secp.commit(value, blinding).unwrap()
         }
@@ -1253,20 +1253,20 @@ mod tests {
             .unwrap();
 
         assert!(secp.verify_commit_sum(
-            vec![commit(101, blind_pos.clone())],
-            vec![commit(75, blind_neg.clone()), commit(26, blind_sum.clone())],
+            vec![commit(101, &blind_pos)],
+            vec![commit(75, &blind_neg), commit(26, &blind_sum)],
         ));
 
         //--- tests of commit_i ---
 
-        fn commit_i(value: i64, blinding: SecretKey) -> Commitment {
+        fn commit_i(value: i64, blinding: &SecretKey) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             secp.commit_i(value, blinding).unwrap()
         }
 
         assert!(secp.verify_commit_sum(
-            vec![commit_i(101, blind_pos)],
-            vec![commit_i(127, blind_neg), commit_i(-26, blind_sum)],
+            vec![commit_i(101, &blind_pos)],
+            vec![commit_i(127, &blind_neg), commit_i(-26, &blind_sum)],
         ));
     }
 
@@ -1274,7 +1274,7 @@ mod tests {
     fn test_verify_commit_sum_random_keys_switch() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
 
-        fn commit(value: u64, blinding: SecretKey) -> Commitment {
+        fn commit(value: u64, blinding: &SecretKey) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             secp.commit(value, blinding).unwrap()
         }
@@ -1296,8 +1296,8 @@ mod tests {
         let diff = pos_value - neg_value;
 
         assert!(secp.verify_commit_sum(
-            vec![commit(pos_value, blind_pos)],
-            vec![commit(neg_value, blind_neg), commit(diff, blind_sum)],
+            vec![commit(pos_value, &blind_pos)],
+            vec![commit(neg_value, &blind_neg), commit(diff, &blind_sum)],
         ));
     }
 
@@ -1307,13 +1307,13 @@ mod tests {
     fn test_to_pubkey() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
         let blinding = SecretKey::new(&mut thread_rng());
-        let commit = secp.commit(5, blinding.clone()).unwrap();
+        let commit = secp.commit(5, &blinding).unwrap();
         let pubkey = commit.to_pubkey(&secp);
         assert!(pubkey.is_ok());
 
         //--- tests of commit_i ---
 
-        let commit = secp.commit_i(-5, blinding).unwrap();
+        let commit = secp.commit_i(-5, &blinding).unwrap();
         let pubkey = commit.to_pubkey(&secp);
         assert!(pubkey.is_ok());
     }
@@ -1322,7 +1322,7 @@ mod tests {
     fn test_sign_with_pubkey_from_commitment() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
         let blinding = SecretKey::new(&mut thread_rng());
-        let commit = secp.commit(0u64, blinding.clone()).unwrap();
+        let commit = secp.commit(0u64, &blinding).unwrap();
 
         let mut msg = [0u8; 32];
         thread_rng().fill(&mut msg);
@@ -1341,7 +1341,7 @@ mod tests {
 
         //--- tests of commit_i ---
 
-        let commit = secp.commit_i(0i64, blinding.clone()).unwrap();
+        let commit = secp.commit_i(0i64, &blinding).unwrap();
         let sig = secp.sign(&msg, &blinding).unwrap();
         let pubkey = commit.to_pubkey(&secp).unwrap();
         assert!(secp.verify(&msg, &sig, &pubkey).is_ok());
@@ -1351,7 +1351,7 @@ mod tests {
     fn test_commit_sum() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
 
-        fn commit(value: u64, blinding: SecretKey) -> Commitment {
+        fn commit(value: u64, blinding: &SecretKey) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             secp.commit(value, blinding).unwrap()
         }
@@ -1359,14 +1359,14 @@ mod tests {
         let blind_a = SecretKey::new(&mut thread_rng());
         let blind_b = SecretKey::new(&mut thread_rng());
 
-        let commit_a = commit(3, blind_a.clone());
-        let commit_b = commit(2, blind_b.clone());
+        let commit_a = commit(3, &blind_a);
+        let commit_b = commit(2, &blind_b);
 
         let blind_c = secp
             .blind_sum(vec![blind_a.clone(), blind_b.clone()], vec![])
             .unwrap();
 
-        let commit_c = commit(3 + 2, blind_c);
+        let commit_c = commit(3 + 2, &blind_c);
 
         let commit_d = secp
             .commit_sum(vec![commit_a.clone(), commit_b.clone()], vec![])
@@ -1377,24 +1377,24 @@ mod tests {
             .blind_sum(vec![blind_a.clone()], vec![blind_b.clone()])
             .unwrap();
 
-        let commit_e = commit(3 - 2, blind_e);
+        let commit_e = commit(3 - 2, &blind_e);
 
         let commit_f = secp.commit_sum(vec![commit_a], vec![commit_b]).unwrap();
         assert_eq!(commit_e, commit_f);
 
         //--- tests of commit_i ---
 
-        fn commit_i(value: i64, blinding: SecretKey) -> Commitment {
+        fn commit_i(value: i64, blinding: &SecretKey) -> Commitment {
             let secp = Secp256k1::with_caps(ContextFlag::Commit);
             secp.commit_i(value, blinding).unwrap()
         }
-        let commit_a = commit_i(5, blind_a.clone());
-        let commit_b = commit_i(-2, blind_b.clone());
+        let commit_a = commit_i(5, &blind_a);
+        let commit_b = commit_i(-2, &blind_b);
 
         let blind_c = secp
             .blind_sum(vec![blind_a.clone(), blind_b.clone()], vec![])
             .unwrap();
-        let commit_c = commit(5 - 2, blind_c);
+        let commit_c = commit(5 - 2, &blind_c);
         let commit_d = secp
             .commit_sum(vec![commit_a.clone(), commit_b.clone()], vec![])
             .unwrap();
@@ -1403,7 +1403,7 @@ mod tests {
         let blind_e = secp
             .blind_sum(vec![blind_a.clone()], vec![blind_b.clone()])
             .unwrap();
-        let commit_e = commit(5 + 2, blind_e);
+        let commit_e = commit(5 + 2, &blind_e);
         let commit_f = secp.commit_sum(vec![commit_a], vec![commit_b]).unwrap();
         assert_eq!(commit_e, commit_f);
     }
@@ -1416,14 +1416,14 @@ mod tests {
         let blind = SecretKey::new(rng);
         let blind2 = ONE_KEY;
         assert_eq!(
-            secp.commit(value, blind.clone()).unwrap(),
-            secp.commit_blind(blind2.clone(), blind.clone()).unwrap()
+            secp.commit(value, &blind).unwrap(),
+            secp.commit_blind(&blind2, &blind).unwrap()
         );
         let value: u64 = 2;
         let blind = SecretKey::new(rng);
         assert_ne!(
-            secp.commit(value, blind.clone()).unwrap(),
-            secp.commit_blind(blind2, blind.clone()).unwrap()
+            secp.commit(value, &blind).unwrap(),
+            secp.commit_blind(&blind2, &blind).unwrap()
         );
         let blind = SecretKey::new(rng);
         let mut blind2 = ZERO_KEY;
@@ -1431,8 +1431,8 @@ mod tests {
         blind2.0[31] = rng.gen::<u8>();
         let value: u64 = blind2[30] as u64 * 256 + blind2[31] as u64;
         assert_eq!(
-            secp.commit(value, blind.clone()).unwrap(),
-            secp.commit_blind(blind2, blind.clone()).unwrap()
+            secp.commit(value, &blind).unwrap(),
+            secp.commit_blind(&blind2, &blind).unwrap()
         );
     }
 
@@ -1442,7 +1442,7 @@ mod tests {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
         let blinding = SecretKey::new(&mut thread_rng());
         let value = 12345678;
-        let commit = secp.commit(value, blinding.clone()).unwrap();
+        let commit = secp.commit(value, &blinding).unwrap();
         let bullet_proof = secp.bullet_proof(
             value,
             blinding.clone(),
@@ -1461,7 +1461,7 @@ mod tests {
 
         // wrong value committed to
         let value = 12345678;
-        let wrong_commit = secp.commit(87654321, blinding.clone()).unwrap();
+        let wrong_commit = secp.commit(87654321, &blinding).unwrap();
         let bullet_proof = secp.bullet_proof(
             value,
             blinding.clone(),
@@ -1479,7 +1479,7 @@ mod tests {
 
         // wrong blinding
         let value = 12345678;
-        let commit = secp.commit(value, blinding).unwrap();
+        let commit = secp.commit(value, &blinding).unwrap();
         let blinding = SecretKey::new(&mut thread_rng());
         let bullet_proof = secp.bullet_proof(
             value,
@@ -1500,7 +1500,7 @@ mod tests {
         let extra_data = [0u8; 32].to_vec();
         let blinding = SecretKey::new(&mut thread_rng());
         let value = 12345678;
-        let commit = secp.commit(value, blinding.clone()).unwrap();
+        let commit = secp.commit(value, &blinding).unwrap();
         let bullet_proof = secp.bullet_proof(
             value,
             blinding.clone(),
@@ -1533,7 +1533,7 @@ mod tests {
         let rewind_nonce = SecretKey::new(&mut thread_rng());
         let private_nonce = SecretKey::new(&mut thread_rng());
         let value = 12345678;
-        let commit = secp.commit(value, blinding.clone()).unwrap();
+        let commit = secp.commit(value, &blinding).unwrap();
 
         let bullet_proof = secp.bullet_proof(
             value,
@@ -1741,10 +1741,10 @@ mod tests {
         let common_nonce = SecretKey::new(&mut thread_rng());
 
         let blinding_a = SecretKey::new(&mut thread_rng());
-        let partial_commit_a = secp.commit(value, blinding_a.clone()).unwrap();
+        let partial_commit_a = secp.commit(value, &blinding_a).unwrap();
 
         let blinding_b = SecretKey::new(&mut thread_rng());
-        let partial_commit_b = secp.commit(0, blinding_b.clone()).unwrap();
+        let partial_commit_b = secp.commit(0, &blinding_b).unwrap();
 
         // 1. Test Bulletproofs multisig without message
         let (_, proof_range) = multisig_bp(
@@ -1760,7 +1760,7 @@ mod tests {
         assert_eq!(proof_range.unwrap().min, 0);
 
         // 2. wrong value committed to
-        let wrong_partial_commit_a = secp.commit(87654321, blinding_a.clone()).unwrap();
+        let wrong_partial_commit_a = secp.commit(87654321, &blinding_a).unwrap();
         let (_, proof_range) = multisig_bp(
             value,
             common_nonce.clone(),
@@ -1891,7 +1891,7 @@ mod tests {
         let blinding = SecretKey::new(&mut thread_rng());
         let nonce = SecretKey::new(&mut thread_rng());
         let value = <u64>::max_value() - 1;
-        let commit = secp.commit(value, blinding.clone()).unwrap();
+        let commit = secp.commit(value, &blinding).unwrap();
 
         let mut pm = ProofMessage::from_bytes(&[0u8; 32]);
         let bullet_proof = secp.bullet_proof(
@@ -1918,7 +1918,7 @@ mod tests {
         let blinding = SecretKey::new(&mut thread_rng());
         let nonce = SecretKey::new(&mut thread_rng());
         let value = <u64>::max_value() - 1;
-        let commit = secp.commit(value, blinding.clone()).unwrap();
+        let commit = secp.commit(value, &blinding).unwrap();
 
         let bullet_proof = secp.bullet_proof(
             value,
@@ -1967,7 +1967,7 @@ mod tests {
             let mut commits: Vec<Commitment> = vec![];
             let mut proofs: Vec<RangeProof> = vec![];
             for i in 0..v {
-                commits.push(secp.commit(value + i as u64, blinding.clone()).unwrap());
+                commits.push(secp.commit(value + i as u64, &blinding).unwrap());
                 proofs.push(secp.bullet_proof(
                     value + i as u64,
                     blinding.clone(),
@@ -2011,9 +2011,9 @@ mod tests {
         let wrong_blinding = SecretKey::new(&mut thread_rng());
         let value = 12345678;
 
-        let wrong_commit = secp.commit(value, wrong_blinding).unwrap();
+        let wrong_commit = secp.commit(value, &wrong_blinding).unwrap();
 
-        commits.push(secp.commit(value, blinding.clone()).unwrap());
+        commits.push(secp.commit(value, &blinding).unwrap());
         proofs.push(secp.bullet_proof(
             value,
             blinding.clone(),
@@ -2045,8 +2045,8 @@ mod tests {
         //  batching verification on double elements w/t extra message data
         commits = vec![];
         proofs = vec![];
-        commits.push(secp.commit(value + 1, blinding.clone()).unwrap());
-        commits.push(secp.commit(value - 1, blinding.clone()).unwrap());
+        commits.push(secp.commit(value + 1, &blinding).unwrap());
+        commits.push(secp.commit(value - 1, &blinding).unwrap());
         proofs.push(secp.bullet_proof(
             value + 1,
             blinding.clone(),
@@ -2118,7 +2118,7 @@ mod tests {
         let mut errs = 0;
         for i in 1..100 {
             print!("\r\r\r{}", i);
-            commits.push(secp.commit(value + i as u64, blinding.clone()).unwrap());
+            commits.push(secp.commit(value + i as u64, &blinding).unwrap());
             proofs.push(secp.bullet_proof(
                 value + i as u64,
                 blinding.clone(),
