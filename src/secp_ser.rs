@@ -387,10 +387,10 @@ mod test {
                 seckey2: sk.clone(),
                 pubkey2: PublicKey::from_secret_key(&secp, &sk).unwrap(),
                 sig2: sig.clone(),
-                commit2: secp.commit(100u64, sk.clone()).unwrap(),
+                commit2: secp.commit(100u64, &sk).unwrap(),
                 commit_vec2: vec![
-                    secp.commit(200u64, sk.clone()).unwrap(),
-                    secp.commit(300u64, sk.clone()).unwrap(),
+                    secp.commit(200u64, &sk).unwrap(),
+                    secp.commit(300u64, &sk).unwrap(),
                 ],
                 pubkey3: PublicKey::from_secret_key(&secp, &sk).unwrap(),
             }
