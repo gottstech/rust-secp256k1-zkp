@@ -397,9 +397,13 @@ mod tests {
     };
     use crate::ffi;
     use crate::key::{PublicKey, SecretKey};
+    use crate::secp_ser;
     use crate::ContextFlag;
     use crate::{AggSigPartialSignature, Message, Signature};
+
     use rand::{thread_rng, Rng};
+    use serde::{self, Deserialize, Serialize};
+    use serde_json;
 
     #[test]
     fn test_aggsig_multisig() {
@@ -509,6 +513,59 @@ mod tests {
         let sig = sign_single(&secp, &msg, &sk, None, Some(&sk_extra), None, None, None).unwrap();
         let result = verify_single(&secp, &sig, &msg, None, &pk, None, Some(&pk_extra), false);
         assert!(result == true);
+    }
+
+    #[test]
+    fn test_aggsig_serialize() {
+        let secp = Secp256k1::with_caps(ContextFlag::Full);
+        for _ in 0..50 {
+            let (sk, _pk) = secp.generate_keypair(&mut thread_rng()).unwrap();
+            let mut msg = [0u8; 32];
+            thread_rng().fill(&mut msg);
+            let msg = Message::from_slice(&msg).unwrap();
+            let sig = sign_single(&secp, &msg, &sk, None, None, None, None, None).unwrap();
+
+            assert_eq!(sig, Signature::from_str(&sig.to_string()).unwrap());
+        }
+
+        // more tests on one example
+        let (sk, pk) = secp.generate_keypair(&mut thread_rng()).unwrap();
+        let mut msg = [0u8; 32];
+        thread_rng().fill(&mut msg);
+        let msg = Message::from_slice(&msg).unwrap();
+        let sig = sign_single(&secp, &msg, &sk, None, None, None, None, None).unwrap();
+        println!("secret key: \t{}", sk.to_string());
+        println!("public key: \t{}", pk.to_string());
+        println!("message: \t{}", msg.to_string());
+        println!("signature: \t{}", sig.to_string());
+        println!("sig raw: \t{:?}", sig);
+
+        // round-trips
+        assert_eq!(sk, SecretKey::from_str(&sk.to_string()).unwrap());
+        assert_eq!(pk, PublicKey::from_str(&pk.to_string()).unwrap());
+        assert_eq!(msg, Message::from_str(&msg.to_string()).unwrap());
+        assert_eq!(sig, Signature::from_str(&sig.to_string()).unwrap());
+
+        #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
+        struct SerTest {
+            pub sec_key: SecretKey,
+            #[serde(with = "secp_ser::pubkey_serde")]
+            pub pub_key: PublicKey,
+            pub msg: Message,
+            #[serde(with = "secp_ser::sig_serde")]
+            pub sig: Signature,
+        }
+
+        let struct_test = SerTest {
+            sec_key: sk,
+            pub_key: pk,
+            msg,
+            sig,
+        };
+        println!(
+            "format with serde mod: {}",
+            serde_json::to_string_pretty(&struct_test).unwrap()
+        );
     }
 
     #[test]

@@ -96,7 +96,7 @@ impl PublicKey {
     }
     /// Create a new (uninitialized) public key usable for the FFI interface
     pub unsafe fn blank() -> PublicKey {
-        mem::uninitialized()
+        mem::MaybeUninit::<PublicKey>::uninit().assume_init()
     }
 }
 
@@ -141,7 +141,7 @@ impl Signature {
     }
     /// Create a new (uninitialized) signature usable for the FFI interface
     pub unsafe fn blank() -> Signature {
-        mem::uninitialized()
+        mem::MaybeUninit::<Signature>::uninit().assume_init()
     }
 }
 
@@ -152,7 +152,7 @@ impl RecoverableSignature {
     }
     /// Create a new (uninitialized) signature usable for the FFI interface
     pub unsafe fn blank() -> RecoverableSignature {
-        mem::uninitialized()
+        mem::MaybeUninit::<RecoverableSignature>::uninit().assume_init()
     }
 }
 
@@ -163,7 +163,7 @@ impl AggSigPartialSignature {
     }
     /// Create a new (uninitialized) signature usable for the FFI interface
     pub unsafe fn blank() -> AggSigPartialSignature {
-        mem::uninitialized()
+        mem::MaybeUninit::<AggSigPartialSignature>::uninit().assume_init()
     }
 }
 
@@ -180,7 +180,7 @@ impl SharedSecret {
     }
     /// Create a new (uninitialized) signature usable for the FFI interface
     pub unsafe fn blank() -> SharedSecret {
-        mem::uninitialized()
+        mem::MaybeUninit::<SharedSecret>::uninit().assume_init()
     }
 }
 

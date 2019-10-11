@@ -217,6 +217,21 @@ impl Signature {
     pub fn to_raw_data(&self) -> [u8; 64] {
         (self.0).0.clone()
     }
+
+    /// Get the Signature hex string
+    pub fn to_string(&self) -> String {
+        hex::encode(&self.serialize_compact()[..])
+    }
+
+    /// Build a Signature from a hex string
+    pub fn from_str(s: &str) -> Result<Signature, Error> {
+        let raw = hex::decode(s).map_err(|_| Error::InvalidSignature)?;
+        if raw.len() == constants::COMPACT_SIGNATURE_SIZE {
+            Signature::from_compact(&raw)
+        } else {
+            Err(Error::InvalidSignature)
+        }
+    }
 }
 
 /// Creates a new signature from a FFI signature
@@ -381,6 +396,17 @@ impl Message {
             _ => Err(Error::InvalidMessage),
         }
     }
+
+    /// Get the Message hex string
+    pub fn to_string(&self) -> String {
+        hex::encode(self.as_ref())
+    }
+
+    /// Build a Message from a hex string
+    pub fn from_str(s: &str) -> Result<Message, Error> {
+        let raw = hex::decode(s).map_err(|_| Error::InvalidMessage)?;
+        Message::from_slice(&raw)
+    }
 }
 
 /// Creates a message from a `MESSAGE_SIZE` byte array
@@ -415,6 +441,8 @@ pub enum Error {
     InvalidRangeProof,
     /// Error creating partial signature
     PartialSigFailure,
+    /// Bad commitment
+    InvalidCommitment,
 }
 
 // Passthrough Debug to Display, since errors should be user-visible
@@ -441,6 +469,7 @@ impl error::Error for Error {
             Error::IncorrectCommitSum => "secp: invalid pedersen commitment sum",
             Error::InvalidRangeProof => "secp: invalid range proof",
             Error::PartialSigFailure => "secp: partial sig (aggsig) failure",
+            Error::InvalidCommitment => "secp: invalid commitment",
         }
     }
 }

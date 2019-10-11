@@ -157,6 +157,17 @@ impl SecretKey {
             }
         }
     }
+
+    /// Get the SecretKey hex string
+    pub fn to_string(&self) -> String {
+        hex::encode(self.as_ref())
+    }
+
+    /// Build a SecretKey from a hex string
+    pub fn from_str(s: &str) -> Result<SecretKey, Error> {
+        let raw = hex::decode(s).map_err(|_| Error::InvalidSecretKey)?;
+        SecretKey::from_slice(&raw)
+    }
 }
 
 impl PublicKey {
@@ -307,6 +318,21 @@ impl PublicKey {
             }
         }
     }
+
+    /// Get the PublicKey hex string
+    pub fn to_string(&self) -> String {
+        hex::encode(self.serialize_vec(true))
+    }
+
+    /// Build a PublicKey from a hex string
+    pub fn from_str(s: &str) -> Result<PublicKey, Error> {
+        let raw = hex::decode(s).map_err(|_| Error::InvalidPublicKey)?;
+        if raw.len() == constants::COMPRESSED_PUBLIC_KEY_SIZE {
+            PublicKey::from_slice(&raw)
+        } else {
+            Err(Error::InvalidPublicKey)
+        }
+    }
 }
 
 /// Creates a new public key from a FFI public key
@@ -331,6 +357,23 @@ mod test {
 
     use crate::key::ONE_KEY;
     use std::slice::from_raw_parts;
+
+    struct DumbRng(u32);
+    impl RngCore for DumbRng {
+        fn next_u32(&mut self) -> u32 {
+            self.0 = self.0.wrapping_add(1);
+            self.0
+        }
+        fn next_u64(&mut self) -> u64 {
+            self.next_u32() as u64
+        }
+        fn fill_bytes(&mut self, dest: &mut [u8]) {
+            impls::fill_bytes_via_next(self, dest)
+        }
+        fn try_fill_bytes(&mut self, _dest: &mut [u8]) -> Result<(), Error> {
+            unimplemented!()
+        }
+    }
 
     // This tests cleaning of SecretKey (e.g. secret key) on Drop.
     // To make this test fail, just remove `Zeroize` derive from `SecretKey` definition.
@@ -382,11 +425,25 @@ mod test {
         ]);
         assert!(uncompressed.is_ok());
 
+        // round-trip test
+        let pubkey_str = uncompressed.unwrap().to_string();
+        assert_eq!(
+            pubkey_str,
+            PublicKey::from_str(&pubkey_str).unwrap().to_string()
+        );
+
         let compressed = PublicKey::from_slice(&[
             3, 23, 183, 225, 206, 31, 159, 148, 195, 42, 67, 115, 146, 41, 248, 140, 11, 3, 51, 41,
             111, 180, 110, 143, 114, 134, 88, 73, 198, 174, 52, 184, 78,
         ]);
         assert!(compressed.is_ok());
+
+        // round-trip test
+        let pubkey_str = compressed.unwrap().to_string();
+        assert_eq!(
+            pubkey_str,
+            PublicKey::from_str(&pubkey_str).unwrap().to_string()
+        );
     }
 
     #[test]
@@ -590,23 +647,6 @@ mod test {
 
     #[test]
     fn test_debug_output() {
-        struct DumbRng(u32);
-        impl RngCore for DumbRng {
-            fn next_u32(&mut self) -> u32 {
-                self.0 = self.0.wrapping_add(1);
-                self.0
-            }
-            fn next_u64(&mut self) -> u64 {
-                self.next_u32() as u64
-            }
-            fn fill_bytes(&mut self, dest: &mut [u8]) {
-                impls::fill_bytes_via_next(self, dest)
-            }
-            fn try_fill_bytes(&mut self, _dest: &mut [u8]) -> Result<(), Error> {
-                unimplemented!()
-            }
-        }
-
         let s = Secp256k1::new();
         let (sk, _) = s.generate_keypair(&mut DumbRng(0)).unwrap();
 
@@ -618,23 +658,6 @@ mod test {
 
     #[test]
     fn test_pubkey_serialize() {
-        struct DumbRng(u32);
-        impl RngCore for DumbRng {
-            fn next_u32(&mut self) -> u32 {
-                self.0 = self.0.wrapping_add(1);
-                self.0
-            }
-            fn next_u64(&mut self) -> u64 {
-                self.next_u32() as u64
-            }
-            fn fill_bytes(&mut self, dest: &mut [u8]) {
-                impls::fill_bytes_via_next(self, dest)
-            }
-            fn try_fill_bytes(&mut self, _dest: &mut [u8]) -> Result<(), Error> {
-                unimplemented!()
-            }
-        }
-
         let s = Secp256k1::new();
         let (_, pk1) = s.generate_keypair(&mut DumbRng(0)).unwrap();
         assert_eq!(
