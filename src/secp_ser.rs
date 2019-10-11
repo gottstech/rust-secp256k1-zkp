@@ -183,6 +183,41 @@ pub mod seckey_serde {
     }
 }
 
+/// Serializes an Option<SecretKey> to and from hex
+pub mod option_seckey_serde {
+    use crate::SecretKey;
+    use serde::{Deserialize, Deserializer, Serializer};
+
+    ///
+    pub fn serialize<S>(key: &Option<SecretKey>, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match key {
+            Some(key) => serializer.serialize_str(&hex::encode(key.0)),
+            None => serializer.serialize_none(),
+        }
+    }
+
+    ///
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Option<SecretKey>, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error;
+        Option::<String>::deserialize(deserializer).and_then(|res| match res {
+            Some(string) => hex::decode(string)
+                .map_err(|err| Error::custom(err.to_string()))
+                .and_then(|bytes: Vec<u8>| {
+                    SecretKey::from_slice(&bytes)
+                        .map(|val| Some(val))
+                        .map_err(|err| Error::custom(err.to_string()))
+                }),
+            None => Ok(None),
+        })
+    }
+}
+
 /// Serializes an Option<PublicKey> to and from hex
 pub mod option_pubkey_serde {
     use crate::PublicKey;
@@ -399,32 +434,22 @@ mod test {
 
     #[test]
     fn ser_secp_primitives() {
+        let is_show_serde_string = false;
         for _ in 0..10 {
             let s = SerTest::random();
-            println!("Before Serialization: {:?}", s);
+            if is_show_serde_string {
+                println!("Before Serialization: {:?}", s);
+            }
             let serialized = serde_json::to_string_pretty(&s).unwrap();
-            println!("JSON: {}", serialized);
+            if is_show_serde_string {
+                println!("JSON: {}", serialized);
+            }
             let deserialized: SerTest = serde_json::from_str(&serialized).unwrap();
-            println!("After Serialization: {:?}", deserialized);
-            println!();
+            if is_show_serde_string {
+                println!("After Serialization: {:?}", deserialized);
+                println!();
+            }
             assert_eq!(s, deserialized);
         }
-
-        let secp = Secp256k1::with_caps(ContextFlag::Commit);
-        let sk = SecretKey::new(&mut thread_rng());
-        let mut msg = [0u8; 32];
-        thread_rng().fill(&mut msg);
-        let msg = Message::from_slice(&msg).unwrap();
-        let sig = sign_single(&secp, &msg, &sk, None, None, None, None, None).unwrap();
-
-        let serialized = serde_json::to_string_pretty(&sk).unwrap();
-        println!("Serialized SecretKey: {}", serialized);
-        let deserialized: SecretKey = serde_json::from_str(&serialized).unwrap();
-        println!("Deserialized SecretKey: {:?}", deserialized);
-
-        let serialized = serde_json::to_string_pretty(&sig).unwrap();
-        println!("Serialized Signature: {}", serialized);
-        let deserialized: Signature = serde_json::from_str(&serialized).unwrap();
-        println!("Deserialized Signature: {:?}", deserialized);
     }
 }

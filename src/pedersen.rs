@@ -73,7 +73,7 @@ impl_pretty_debug!(CommitmentInternal);
 impl CommitmentInternal {
     /// Uninitialized commitment, use with caution
     pub unsafe fn blank() -> CommitmentInternal {
-        mem::uninitialized()
+        mem::MaybeUninit::<CommitmentInternal>::uninit().assume_init()
     }
 }
 
@@ -88,7 +88,7 @@ impl_array_newtype!(Commitment, u8, constants::PEDERSEN_COMMITMENT_SIZE);
 impl_pretty_debug!(Commitment);
 
 impl Commitment {
-    /// Builds a Hash from a byte vector. If the vector is too short, it will be
+    /// Builds a Commitment from a byte vector. If the vector is too short, it will be
     /// completed by zeroes. If it's too long, it will be truncated.
     pub fn from_vec(v: Vec<u8>) -> Commitment {
         let mut h = [0; constants::PEDERSEN_COMMITMENT_SIZE];
@@ -100,7 +100,7 @@ impl Commitment {
 
     /// Uninitialized commitment, use with caution
     unsafe fn blank() -> Commitment {
-        mem::uninitialized()
+        mem::MaybeUninit::<Commitment>::uninit().assume_init()
     }
 
     /// Converts a commitment to a public key
@@ -114,6 +114,21 @@ impl Commitment {
             } else {
                 Err(InvalidPublicKey)
             }
+        }
+    }
+
+    /// Get the commitment hex string
+    pub fn to_string(&self) -> String {
+        hex::encode(self.as_ref())
+    }
+
+    /// Build a commitment from a hex string
+    pub fn from_str(s: &str) -> Result<Commitment, Error> {
+        let raw = hex::decode(s).map_err(|_| Error::InvalidCommitment)?;
+        if raw.len() == constants::PEDERSEN_COMMITMENT_SIZE {
+            Ok(Commitment::from_vec(raw))
+        } else {
+            Err(Error::InvalidCommitment)
         }
     }
 }
@@ -139,7 +154,7 @@ impl Clone for RangeProof {
     fn clone(&self) -> RangeProof {
         unsafe {
             use std::ptr::copy_nonoverlapping;
-            let mut ret: [u8; constants::MAX_PROOF_SIZE] = mem::uninitialized();
+            let mut ret: [u8; constants::MAX_PROOF_SIZE] = mem::MaybeUninit::<[u8; constants::MAX_PROOF_SIZE]>::uninit().assume_init();
             copy_nonoverlapping(
                 self.proof.as_ptr(),
                 ret.as_mut_ptr(),
@@ -495,7 +510,7 @@ impl Secp256k1 {
         let mut neg = map_vec!(negative, |n| n.as_ptr());
         let mut all = map_vec!(positive, |p| p.as_ptr());
         all.append(&mut neg);
-        let mut ret: [u8; 32] = unsafe { mem::uninitialized() };
+        let mut ret = unsafe { mem::MaybeUninit::<[u8; 32]>::uninit().assume_init() };
         unsafe {
             assert_eq!(
                 ffi::secp256k1_pedersen_blind_sum(
@@ -517,7 +532,7 @@ impl Secp256k1 {
         if self.caps != ContextFlag::Commit {
             return Err(Error::IncapableContext);
         }
-        let mut ret: [u8; 32] = unsafe { mem::uninitialized() };
+        let mut ret = unsafe { mem::MaybeUninit::<[u8; 32]>::uninit().assume_init() };
         unsafe {
             assert_eq!(
                 ffi::secp256k1_blind_switch(
@@ -650,8 +665,8 @@ impl Secp256k1 {
         nonce: SecretKey,
     ) -> ProofInfo {
         let mut value: u64 = 0;
-        let mut blind: [u8; 32] = unsafe { mem::uninitialized() };
-        let mut message: [u8; constants::PROOF_MSG_SIZE] = unsafe { mem::uninitialized() };
+        let mut blind = unsafe { mem::MaybeUninit::<[u8; 32]>::uninit().assume_init() };
+        let mut message = unsafe { mem::MaybeUninit::<[u8; constants::PROOF_MSG_SIZE]>::uninit().assume_init() };
         let mut mlen: usize = constants::PROOF_MSG_SIZE;
         let mut min: u64 = 0;
         let mut max: u64 = 0;
@@ -1302,8 +1317,6 @@ mod tests {
     }
 
     #[test]
-    // to_pubkey() is not currently working as secp does currently
-    // provide an api to extract a public key from a commitment
     fn test_to_pubkey() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
         let blinding = SecretKey::new(&mut thread_rng());
@@ -1311,11 +1324,13 @@ mod tests {
         let pubkey = commit.to_pubkey(&secp);
         assert!(pubkey.is_ok());
 
+        assert_eq!(commit, Commitment::from_str(&commit.to_string()).unwrap());
         //--- tests of commit_i ---
 
         let commit = secp.commit_i(-5, &blinding).unwrap();
         let pubkey = commit.to_pubkey(&secp);
         assert!(pubkey.is_ok());
+        assert_eq!(commit, Commitment::from_str(&commit.to_string()).unwrap());
     }
 
     #[test]
