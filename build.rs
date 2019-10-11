@@ -21,7 +21,28 @@
 #![deny(unused_mut)]
 #![warn(missing_docs)]
 
+use std::path::PathBuf;
+use std::process::Command;
+
 fn main() {
+    // Setting up git hooks in the project: rustfmt and so on.
+    let git_hooks = format!(
+        "git config core.hooksPath {}",
+        PathBuf::from("./.hooks").to_str().unwrap()
+    );
+
+    if cfg!(target_os = "windows") {
+        Command::new("cmd")
+            .args(&["/C", &git_hooks])
+            .output()
+            .expect("failed to execute git config for hooks");
+    } else {
+        Command::new("sh")
+            .args(&["-c", &git_hooks])
+            .output()
+            .expect("failed to execute git config for hooks");
+    }
+
     let mut base_config = cc::Build::new();
     base_config.include("depend/secp256k1-zkp/")
                .include("depend/secp256k1-zkp/include")
