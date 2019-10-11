@@ -30,6 +30,12 @@ macro_rules! impl_array_newtype {
                 let &mut $thing(ref mut dat) = self;
                 dat.as_mut_ptr()
             }
+
+            #[inline]
+            /// Returns the length of the object as an array
+            pub fn len(&self) -> usize {
+                $len
+            }
         }
 
         impl AsRef<[u8]> for $thing {
@@ -46,6 +52,20 @@ macro_rules! impl_array_newtype {
         }
 
         impl Eq for $thing {}
+
+        impl PartialOrd for $thing {
+            #[inline]
+            fn partial_cmp(&self, other: &$thing) -> Option<::core::cmp::Ordering> {
+                self[..].partial_cmp(&other[..])
+            }
+        }
+
+        impl Ord for $thing {
+            #[inline]
+            fn cmp(&self, other: &$thing) -> ::core::cmp::Ordering {
+                self[..].cmp(&other[..])
+            }
+        }
 
         impl Clone for $thing {
             #[inline]
