@@ -44,29 +44,31 @@ fn main() {
     }
 
     let mut base_config = cc::Build::new();
-    base_config.include("depend/secp256k1-zkp/")
-               .include("depend/secp256k1-zkp/include")
-               .include("depend/secp256k1-zkp/src")
-               .flag("-g")
-               // TODO these three should be changed to use libgmp, at least until secp PR 290 is merged
-               .define("USE_NUM_NONE", Some("1"))
-               .define("USE_FIELD_INV_BUILTIN", Some("1"))
-               .define("USE_SCALAR_INV_BUILTIN", Some("1"))
-               // TODO these should use 64-bit variants on 64-bit systems
-               .define("USE_FIELD_10X26", Some("1"))
-               .define("USE_SCALAR_8X32", Some("1"))
-               .define("USE_ENDOMORPHISM", Some("1"))
-               // These all are OK.
-               .define("ENABLE_MODULE_ECDH", Some("1"))
-               .define("ENABLE_MODULE_GENERATOR", Some("1"))
-               .define("ENABLE_MODULE_RECOVERY", Some("1"))
-               .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
-               .define("ENABLE_MODULE_BULLETPROOF", Some("1"))
-               .define("ENABLE_MODULE_AGGSIG", Some("1"))
-               .define("ENABLE_MODULE_SCHNORRSIG", Some("1"));
+    base_config
+        .include("depend/secp256k1-zkp/")
+        .include("depend/secp256k1-zkp/include")
+        .include("depend/secp256k1-zkp/src")
+        .flag("-g")
+        // TODO these three should be changed to use libgmp, at least until secp PR 290 is merged
+        .define("USE_NUM_NONE", Some("1"))
+        .define("USE_FIELD_INV_BUILTIN", Some("1"))
+        .define("USE_SCALAR_INV_BUILTIN", Some("1"))
+        // TODO these should use 64-bit variants on 64-bit systems
+        .define("USE_FIELD_10X26", Some("1"))
+        .define("USE_SCALAR_8X32", Some("1"))
+        .define("USE_ENDOMORPHISM", Some("1"))
+        // These all are OK.
+        .define("ENABLE_MODULE_ECDH", Some("1"))
+        .define("ENABLE_MODULE_GENERATOR", Some("1"))
+        .define("ENABLE_MODULE_RECOVERY", Some("1"))
+        .define("ENABLE_MODULE_RANGEPROOF", Some("1"))
+        .define("ENABLE_MODULE_BULLETPROOF", Some("1"))
+        .define("ENABLE_MODULE_AGGSIG", Some("1"))
+        .define("ENABLE_MODULE_SCHNORRSIG", Some("1"));
 
     // secp256k1-zkp
-    base_config.file("depend/secp256k1-zkp/contrib/lax_der_parsing.c")
-               .file("depend/secp256k1-zkp/src/secp256k1.c")
-               .compile("libsecp256k1.a");
+    base_config
+        .file("depend/secp256k1-zkp/contrib/lax_der_parsing.c")
+        .file("depend/secp256k1-zkp/src/secp256k1.c")
+        .compile("libsecp256k1.a");
 }

@@ -397,13 +397,13 @@ mod tests {
     };
     use crate::ffi;
     use crate::key::{PublicKey, SecretKey};
+    use crate::secp_ser;
     use crate::ContextFlag;
     use crate::{AggSigPartialSignature, Message, Signature};
-    use crate::secp_ser;
 
+    use rand::{thread_rng, Rng};
     use serde::{self, Deserialize, Serialize};
     use serde_json;
-    use rand::{thread_rng, Rng};
 
     #[test]
     fn test_aggsig_multisig() {
@@ -562,7 +562,10 @@ mod tests {
             msg,
             sig,
         };
-        println!("format with serde mod: {}", serde_json::to_string_pretty(&struct_test).unwrap());
+        println!(
+            "format with serde mod: {}",
+            serde_json::to_string_pretty(&struct_test).unwrap()
+        );
     }
 
     #[test]

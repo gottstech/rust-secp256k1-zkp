@@ -154,7 +154,8 @@ impl Clone for RangeProof {
     fn clone(&self) -> RangeProof {
         unsafe {
             use std::ptr::copy_nonoverlapping;
-            let mut ret: [u8; constants::MAX_PROOF_SIZE] = mem::MaybeUninit::<[u8; constants::MAX_PROOF_SIZE]>::uninit().assume_init();
+            let mut ret: [u8; constants::MAX_PROOF_SIZE] =
+                mem::MaybeUninit::<[u8; constants::MAX_PROOF_SIZE]>::uninit().assume_init();
             copy_nonoverlapping(
                 self.proof.as_ptr(),
                 ret.as_mut_ptr(),
@@ -666,7 +667,8 @@ impl Secp256k1 {
     ) -> ProofInfo {
         let mut value: u64 = 0;
         let mut blind = unsafe { mem::MaybeUninit::<[u8; 32]>::uninit().assume_init() };
-        let mut message = unsafe { mem::MaybeUninit::<[u8; constants::PROOF_MSG_SIZE]>::uninit().assume_init() };
+        let mut message =
+            unsafe { mem::MaybeUninit::<[u8; constants::PROOF_MSG_SIZE]>::uninit().assume_init() };
         let mut mlen: usize = constants::PROOF_MSG_SIZE;
         let mut min: u64 = 0;
         let mut max: u64 = 0;

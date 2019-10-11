@@ -427,7 +427,10 @@ mod test {
 
         // round-trip test
         let pubkey_str = uncompressed.unwrap().to_string();
-        assert_eq!(pubkey_str, PublicKey::from_str(&pubkey_str).unwrap().to_string());
+        assert_eq!(
+            pubkey_str,
+            PublicKey::from_str(&pubkey_str).unwrap().to_string()
+        );
 
         let compressed = PublicKey::from_slice(&[
             3, 23, 183, 225, 206, 31, 159, 148, 195, 42, 67, 115, 146, 41, 248, 140, 11, 3, 51, 41,
@@ -437,7 +440,10 @@ mod test {
 
         // round-trip test
         let pubkey_str = compressed.unwrap().to_string();
-        assert_eq!(pubkey_str, PublicKey::from_str(&pubkey_str).unwrap().to_string());
+        assert_eq!(
+            pubkey_str,
+            PublicKey::from_str(&pubkey_str).unwrap().to_string()
+        );
     }
 
     #[test]
