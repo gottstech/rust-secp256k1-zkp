@@ -23,7 +23,8 @@ use crate::key::{PublicKey, SecretKey};
 use crate::Secp256k1;
 use crate::{AggSigPartialSignature, Error, Message, Signature};
 
-const SCRATCH_SPACE_SIZE: size_t = 1024 * 1024;
+/// Scratch space size
+pub const SCRATCH_SPACE_SIZE: size_t = 1024 * 1024;
 
 /// The 256 bits 0
 pub const ZERO_256: [u8; 32] = [0u8; 32];
@@ -185,47 +186,6 @@ pub fn verify_single(
         0 => false,
         1 => true,
         _ => false,
-    }
-}
-
-/// Batch Schnorr signature verification
-/// Returns: true on success
-/// In:
-/// sigs: The signatures
-/// msg: The messages to verify
-/// pubkey: The public keys
-pub fn verify_batch(
-    secp: &Secp256k1,
-    sigs: &Vec<Signature>,
-    msgs: &Vec<Message>,
-    pub_keys: &Vec<PublicKey>,
-) -> bool {
-    if sigs.len() != msgs.len() || sigs.len() != pub_keys.len() {
-        return false;
-    }
-
-    for i in 0..pub_keys.len() {
-        if (pub_keys[i].0).0.starts_with(&ZERO_256) {
-            return false;
-        }
-    }
-
-    let sigs_vec = map_vec!(sigs, |s| s.0.as_ptr());
-    let msgs_vec = map_vec!(msgs, |m| m.as_ptr());
-    let pub_keys_vec = map_vec!(pub_keys, |pk| pk.as_ptr());
-
-    unsafe {
-        let scratch = ffi::secp256k1_scratch_space_create(secp.ctx, SCRATCH_SPACE_SIZE);
-        let result = ffi::secp256k1_schnorrsig_verify_batch(
-            secp.ctx,
-            scratch,
-            sigs_vec.as_ptr(),
-            msgs_vec.as_ptr(),
-            pub_keys_vec.as_ptr(),
-            sigs.len(),
-        );
-        ffi::secp256k1_scratch_space_destroy(scratch);
-        result == 1
     }
 }
 
@@ -392,12 +352,13 @@ impl Drop for AggSigContext {
 #[cfg(test)]
 mod tests {
     use super::{
-        add_signatures_single, export_secnonce_single, sign_single, verify_batch, verify_single,
-        AggSigContext, Secp256k1,
+        add_signatures_single, export_secnonce_single, sign_single, verify_single, AggSigContext,
+        Secp256k1,
     };
     use crate::ffi;
     use crate::key::{PublicKey, SecretKey};
     use crate::secp_ser;
+    use crate::verify_batch;
     use crate::ContextFlag;
     use crate::{AggSigPartialSignature, Message, Signature};
 
@@ -566,35 +527,6 @@ mod tests {
             "format with serde mod: {}",
             serde_json::to_string_pretty(&struct_test).unwrap()
         );
-    }
-
-    #[test]
-    fn test_aggsig_batch() {
-        let secp = Secp256k1::with_caps(ContextFlag::Full);
-
-        let mut sigs: Vec<Signature> = vec![];
-        let mut msgs: Vec<Message> = vec![];
-        let mut pub_keys: Vec<PublicKey> = vec![];
-
-        for _ in 0..100 {
-            let (sk, pk) = secp.generate_keypair(&mut thread_rng()).unwrap();
-            let mut msg = [0u8; 32];
-            thread_rng().fill(&mut msg);
-
-            let msg = Message::from_slice(&msg).unwrap();
-            let sig = sign_single(&secp, &msg, &sk, None, None, None, Some(&pk), None).unwrap();
-
-            let result_single = verify_single(&secp, &sig, &msg, None, &pk, Some(&pk), None, false);
-            assert!(result_single == true);
-
-            pub_keys.push(pk);
-            msgs.push(msg);
-            sigs.push(sig);
-        }
-
-        println!("Verifying aggsig batch of 100");
-        let result = verify_batch(&secp, &sigs, &msgs, &pub_keys);
-        assert!(result == true);
     }
 
     #[test]

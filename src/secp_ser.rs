@@ -72,6 +72,27 @@ where
         })
 }
 
+/// Creates a [u8; 96] from a hex string
+pub fn hex_to_commit_sig<'de, D>(deserializer: D) -> Result<[u8; 96], D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::Error;
+    String::deserialize(deserializer)
+        .and_then(|string| hex::decode(string).map_err(|err| Error::custom(err.to_string())))
+        .and_then(|bytes: Vec<u8>| {
+            let mut ret = [0u8; 96];
+            match bytes.len() {
+                96 => ret[..].copy_from_slice(&bytes),
+                _ => Err(serde::de::Error::invalid_length(
+                    bytes.len(),
+                    &ExpectedString("a 96-byte hex string".to_owned()),
+                ))?,
+            }
+            Ok(ret)
+        })
+}
+
 /// Creates a [u8; RECOVERABLE_AGG_SIGNATURE_SIZE] from a hex string
 pub fn hex_to_rsig<'de, D>(
     deserializer: D,

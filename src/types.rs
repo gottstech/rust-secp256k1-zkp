@@ -25,11 +25,37 @@ use crate::ffi;
 use crate::key;
 use crate::{hex_to_key, u8_to_hex};
 
+/// An Schnorr signature with Pedersen commitment as key
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
+pub struct CommitSignature(pub ffi::CommitSignature);
+
+/// Creates a new signature from a FFI signature
+impl From<ffi::CommitSignature> for CommitSignature {
+    #[inline]
+    fn from(sig: ffi::CommitSignature) -> CommitSignature {
+        CommitSignature(sig)
+    }
+}
+
+impl CommitSignature {
+    /// Obtains a raw pointer suitable for use with FFI functions
+    #[inline]
+    pub fn as_ptr(&self) -> *const ffi::CommitSignature {
+        &self.0 as *const _
+    }
+
+    /// Obtains a raw mutable pointer suitable for use with FFI functions
+    #[inline]
+    pub fn as_mut_ptr(&mut self) -> *mut ffi::CommitSignature {
+        &mut self.0 as *mut _
+    }
+}
+
 /// A tag used for recovering the public key from a compact signature
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct RecoveryId(pub i32);
 
-/// An ECDSA signature
+/// An ECDSA or Schonorr signature
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub struct Signature(pub ffi::Signature);
 
