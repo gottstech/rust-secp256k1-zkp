@@ -27,26 +27,26 @@ use crate::{hex_to_key, u8_to_hex};
 
 /// An Schnorr signature with Pedersen commitment as key
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Serialize, Deserialize)]
-pub struct CommitSignature(pub ffi::CommitSignature);
+pub struct ComSignature(pub ffi::ComSignature);
 
 /// Creates a new signature from a FFI signature
-impl From<ffi::CommitSignature> for CommitSignature {
+impl From<ffi::ComSignature> for ComSignature {
     #[inline]
-    fn from(sig: ffi::CommitSignature) -> CommitSignature {
-        CommitSignature(sig)
+    fn from(sig: ffi::ComSignature) -> ComSignature {
+        ComSignature(sig)
     }
 }
 
-impl CommitSignature {
+impl ComSignature {
     /// Obtains a raw pointer suitable for use with FFI functions
     #[inline]
-    pub fn as_ptr(&self) -> *const ffi::CommitSignature {
+    pub fn as_ptr(&self) -> *const ffi::ComSignature {
         &self.0 as *const _
     }
 
     /// Obtains a raw mutable pointer suitable for use with FFI functions
     #[inline]
-    pub fn as_mut_ptr(&mut self) -> *mut ffi::CommitSignature {
+    pub fn as_mut_ptr(&mut self) -> *mut ffi::ComSignature {
         &mut self.0 as *mut _
     }
 }

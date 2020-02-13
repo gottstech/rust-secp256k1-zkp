@@ -66,11 +66,11 @@ pub use key::{PublicKey, SecretKey, ONE_KEY, ZERO_KEY};
 pub use pedersen::{Commitment, ProofInfo, ProofMessage, ProofRange, RangeProof};
 pub use schnorrsig::{schnorrsig_sign, schnorrsig_verify, verify_batch};
 pub use secp_ser::{
-    hex_to_bp, hex_to_commit, hex_to_commit_sig, hex_to_key, hex_to_rsig, hex_to_sig, hex_to_u8,
+    hex_to_bp, hex_to_commit, hex_to_comsig, hex_to_key, hex_to_rsig, hex_to_sig, hex_to_u8,
     option_pubkey_serde, option_seckey_serde, option_sig_serde, pubkey_serde,
     pubkey_uncompressed_serde, seckey_serde, sig_serde, u8_to_hex,
 };
 pub use types::{
-    AggSigPartialSignature, CommitSignature, ContextFlag, Error, Message, RecoverableSignature,
+    AggSigPartialSignature, ComSignature, ContextFlag, Error, Message, RecoverableSignature,
     RecoveryId, Secp256k1, Signature,
 };

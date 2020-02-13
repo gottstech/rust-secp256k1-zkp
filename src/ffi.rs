@@ -16,7 +16,7 @@
 //! # FFI bindings
 //! Direct bindings to the underlying C library functions. These should
 //! not be needed for most users.
-use crate::{hex_to_commit_sig, hex_to_key, hex_to_rsig, hex_to_sig, u8_to_hex};
+use crate::{hex_to_comsig, hex_to_key, hex_to_rsig, hex_to_sig, u8_to_hex};
 use libc::{c_int, c_uchar, c_uint, c_void, size_t};
 use serde::{self, Deserialize, Serialize};
 use std::mem;
@@ -110,16 +110,15 @@ impl Copy for Signature {}
 impl_array_newtype!(Signature, c_uchar, 64);
 impl_raw_debug!(Signature);
 
-/// Library-internal representation of a Secp256k1 signature for a commitment as key.
+/// Library-internal representation of a Secp256k1 ComSig signature.
 #[repr(C)]
 #[derive(Serialize, Deserialize)]
-pub struct CommitSignature(
-    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_commit_sig")]
-    pub  [c_uchar; 96],
+pub struct ComSignature(
+    #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_comsig")] pub [c_uchar; 96],
 );
-impl Copy for CommitSignature {}
-impl_array_newtype!(CommitSignature, c_uchar, 96);
-impl_raw_debug!(CommitSignature);
+impl Copy for ComSignature {}
+impl_array_newtype!(ComSignature, c_uchar, 96);
+impl_raw_debug!(ComSignature);
 
 /// Library-internal representation of a Secp256k1 signature + recovery ID
 #[repr(C)]
@@ -156,18 +155,18 @@ impl Signature {
     }
 }
 
-impl CommitSignature {
+impl ComSignature {
     /// Create a new (zeroed) signature usable for the FFI interface
-    pub fn new() -> CommitSignature {
-        CommitSignature([0; 96])
+    pub fn new() -> ComSignature {
+        ComSignature([0; 96])
     }
     /// Create a signature from raw data
-    pub fn from_data(data: [u8; 96]) -> CommitSignature {
-        CommitSignature(data)
+    pub fn from_data(data: [u8; 96]) -> ComSignature {
+        ComSignature(data)
     }
     /// Create a new (uninitialized) signature usable for the FFI interface
-    pub unsafe fn blank() -> CommitSignature {
-        mem::MaybeUninit::<CommitSignature>::uninit().assume_init()
+    pub unsafe fn blank() -> ComSignature {
+        mem::MaybeUninit::<ComSignature>::uninit().assume_init()
     }
 }
 
@@ -443,21 +442,21 @@ extern "C" {
         pk: *const PublicKey,
     ) -> c_int;
 
-    pub fn secp256k1_schnorrsig_commit_sign(
+    pub fn secp256k1_comsig_sign(
         cx: *const Context,
-        sig: *mut CommitSignature,
+        sig: *mut ComSignature,
         pk: *mut PublicKey,
         nonce_is_negated: *mut i64,
         msg32: *const c_uchar,
         seckey32: *const c_uchar,
-        value: i64,
+        value: *const c_uchar,
         noncefn: *const c_void,
-        noncedata: *const c_void,
+        algo16: *const c_uchar,
     ) -> c_int;
 
-    pub fn secp256k1_schnorrsig_commit_verify(
+    pub fn secp256k1_comsig_verify(
         cx: *const Context,
-        sig: *const CommitSignature,
+        sig: *const ComSignature,
         msg32: *const c_uchar,
         pk: *const PublicKey,
     ) -> c_int;

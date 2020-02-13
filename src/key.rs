@@ -18,6 +18,7 @@
 use arrayvec::ArrayVec;
 use rand::Rng;
 use serde::{self, Deserialize, Serialize};
+use zeroize::Zeroize;
 
 use crate::constants;
 use crate::ffi;
@@ -25,10 +26,8 @@ use crate::types::Error::{self, *};
 use crate::{hex_to_key, u8_to_hex};
 use crate::{ContextFlag, Secp256k1};
 
-use zeroize::Zeroize;
-
 /// Secret 256-bit key used as `x` in an ECDSA signature
-#[derive(Zeroize, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Zeroize)]
 #[zeroize(drop)]
 pub struct SecretKey(
     #[serde(serialize_with = "u8_to_hex", deserialize_with = "hex_to_key")]

@@ -73,7 +73,7 @@ where
 }
 
 /// Creates a [u8; 96] from a hex string
-pub fn hex_to_commit_sig<'de, D>(deserializer: D) -> Result<[u8; 96], D::Error>
+pub fn hex_to_comsig<'de, D>(deserializer: D) -> Result<[u8; 96], D::Error>
 where
     D: Deserializer<'de>,
 {

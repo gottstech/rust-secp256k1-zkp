@@ -14,13 +14,14 @@
 
 //! # Schnorr Signature Functionality
 
+use rand::{thread_rng, Rng};
 use std::ptr;
 
 use crate::aggsig::SCRATCH_SPACE_SIZE;
 use crate::ffi;
 use crate::key::{PublicKey, SecretKey};
 use crate::Secp256k1;
-use crate::{CommitSignature, Error, Message, Signature, ZERO_256};
+use crate::{ComSignature, Error, Message, Signature, ZERO_256};
 
 /// Create a Schnorr signature.
 /// Returns: Ok(Signature) on success
@@ -74,37 +75,39 @@ pub fn schnorrsig_verify(
     }
 }
 
-/// Create a Schnorr signature with Pedersen commitment as key.
+/// Create a ComSig signature.
 /// Returns: Ok(CommitSignature) on success
 /// In:
 /// msg: the message to sign
 /// seckey: the secret key
-pub fn schnorrsig_commit_sign(
+pub fn comsig_sign(
     secp: &Secp256k1,
     msg: &Message,
     seckey: &SecretKey,
-    value: i64,
+    value: &SecretKey,
     pubkey: &mut Option<PublicKey>,
-) -> Result<CommitSignature, Error> {
-    let mut retsig = CommitSignature::from(ffi::CommitSignature::new());
+) -> Result<ComSignature, Error> {
+    let mut retsig = ComSignature::from(ffi::ComSignature::new());
     let mut nonce_is_negated: i64 = 0;
     let ret_pubkey = if let Some(pk) = pubkey {
         pk.as_mut_ptr()
     } else {
         ptr::null_mut()
     };
+    let mut seed = [0u8; 16];
+    thread_rng().fill(&mut seed);
 
     let retval = unsafe {
-        ffi::secp256k1_schnorrsig_commit_sign(
+        ffi::secp256k1_comsig_sign(
             secp.ctx,
             retsig.as_mut_ptr(),
             ret_pubkey,
             &mut nonce_is_negated,
             msg.as_ptr(),
             seckey.as_ptr(),
-            value,
+            value.as_ptr(),
             ptr::null(),
-            ptr::null(),
+            seed.as_ptr(),
         )
     };
     if retval == 0 {
@@ -113,25 +116,20 @@ pub fn schnorrsig_commit_sign(
     Ok(retsig)
 }
 
-/// Verify a Schnorr signature with Pedersen commitment as key.
+/// Verify a ComSig signature.
 /// Returns: true on success
 /// In:
 /// sig: The signature
 /// msg: the message to verify
 /// pubkey: the public key
-pub fn schnorrsig_commit_verify(
+pub fn comsig_verify(
     secp: &Secp256k1,
-    sig: &CommitSignature,
+    sig: &ComSignature,
     msg: &Message,
     pubkey: &PublicKey,
 ) -> bool {
     let retval = unsafe {
-        ffi::secp256k1_schnorrsig_commit_verify(
-            secp.ctx,
-            sig.as_ptr(),
-            msg.as_ptr(),
-            pubkey.as_ptr(),
-        )
+        ffi::secp256k1_comsig_verify(secp.ctx, sig.as_ptr(), msg.as_ptr(), pubkey.as_ptr())
     };
     match retval {
         0 => false,
@@ -184,11 +182,10 @@ pub fn verify_batch(
 #[cfg(test)]
 mod tests {
     use super::{
-        schnorrsig_commit_sign, schnorrsig_commit_verify, schnorrsig_sign, schnorrsig_verify,
-        verify_batch, Secp256k1,
+        comsig_sign, comsig_verify, schnorrsig_sign, schnorrsig_verify, verify_batch, Secp256k1,
     };
     use crate::key::PublicKey;
-    use crate::ContextFlag;
+    use crate::{ContextFlag, SecretKey};
     use crate::{Message, Signature};
 
     use rand::{thread_rng, Rng};
@@ -224,47 +221,48 @@ mod tests {
     }
 
     #[test]
-    fn test_schnorrsig_commit_sign() {
+    fn test_comsig_sign() {
         let secp = Secp256k1::with_caps(ContextFlag::Commit);
         let (sk, pk) = secp.generate_keypair(&mut thread_rng()).unwrap();
 
         println!(
-            "Performing test_schnorrsig_commit_sign with seckey, pubkey: {:?},{:?}",
+            "Performing test_comsig_sign with seckey, pubkey: {:?},{:?}",
             sk, pk
         );
 
         let mut msg = [0u8; 32];
         thread_rng().fill(&mut msg);
+        let w = SecretKey::new(&mut thread_rng());
         let msg = Message::from_slice(&msg).unwrap();
         let mut ret_pubkey = Some(PublicKey::new());
-        let sig = schnorrsig_commit_sign(&secp, &msg, &sk, 100, &mut ret_pubkey).unwrap();
-        println!("schnorr commit signature data: {}", hex::encode(sig.0));
+        let sig = comsig_sign(&secp, &msg, &sk, &w, &mut ret_pubkey).unwrap();
+        println!("ComSig signature data: {}", hex::encode(sig.0));
 
-        let commit = secp.commit_i(100, &sk).unwrap();
+        let commit = secp.commit_blind(&w, &sk).unwrap();
         let commit_pk = commit.to_pubkey(&secp).unwrap();
         assert_eq!(ret_pubkey.unwrap(), commit_pk);
 
         println!(
-            "Verifying Schnorr commit signature: {:?}, msg: {:?}, commit:{:?}",
+            "Verifying ComSig signature: {:?}, msg: {:?}, commit:{:?}",
             sig, msg, commit
         );
-        let result = schnorrsig_commit_verify(&secp, &sig, &msg, &commit_pk);
+        let result = comsig_verify(&secp, &sig, &msg, &commit_pk);
         println!("Commit Signature verification (correct): {}", result);
         assert_eq!(result, true);
 
         let num = 4096;
-        for i in 0..num {
+        for _ in 0..num {
             let mut msg = [0u8; 32];
             thread_rng().fill(&mut msg);
             let msg = Message::from_slice(&msg).unwrap();
-            let value = -num / 2 + i;
-            let sig = schnorrsig_commit_sign(&secp, &msg, &sk, value, &mut ret_pubkey).unwrap();
+            let w = SecretKey::new(&mut thread_rng());
+            let sig = comsig_sign(&secp, &msg, &sk, &w, &mut ret_pubkey).unwrap();
 
-            let commit = secp.commit_i(value, &sk).unwrap();
+            let commit = secp.commit_blind(&w, &sk).unwrap();
             let commit_pk = commit.to_pubkey(&secp).unwrap();
             assert_eq!(ret_pubkey.unwrap(), commit_pk);
 
-            let result = schnorrsig_commit_verify(&secp, &sig, &msg, &commit_pk);
+            let result = comsig_verify(&secp, &sig, &msg, &commit_pk);
             assert_eq!(result, true);
         }
     }
