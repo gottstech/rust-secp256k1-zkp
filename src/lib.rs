@@ -46,12 +46,13 @@ pub mod ecdh;
 pub mod ffi;
 pub mod key;
 pub mod pedersen;
+pub mod schnorrsig;
 pub mod secp_ser;
 mod types;
 
 pub use aggsig::{
-    add_signatures_single, export_secnonce_single, sign_single, verify_batch, verify_single,
-    AggSigContext, ZERO_256,
+    add_signatures_single, export_secnonce_single, sign_single, verify_single, AggSigContext,
+    ZERO_256,
 };
 pub use constants::{
     AGG_SIGNATURE_SIZE, BULLET_PROOF_MSG_SIZE, COMPACT_SIGNATURE_SIZE, COMPRESSED_PUBLIC_KEY_SIZE,
@@ -63,12 +64,13 @@ pub use constants::{
 pub use ecdh::SharedSecret;
 pub use key::{PublicKey, SecretKey, ONE_KEY, ZERO_KEY};
 pub use pedersen::{Commitment, ProofInfo, ProofMessage, ProofRange, RangeProof};
+pub use schnorrsig::{schnorrsig_sign, schnorrsig_verify, verify_batch};
 pub use secp_ser::{
-    hex_to_bp, hex_to_commit, hex_to_key, hex_to_rsig, hex_to_sig, hex_to_u8, option_pubkey_serde,
-    option_seckey_serde, option_sig_serde, pubkey_serde, pubkey_uncompressed_serde, seckey_serde,
-    sig_serde, u8_to_hex,
+    hex_to_bp, hex_to_commit, hex_to_comsig, hex_to_key, hex_to_rsig, hex_to_sig, hex_to_u8,
+    option_pubkey_serde, option_seckey_serde, option_sig_serde, pubkey_serde,
+    pubkey_uncompressed_serde, seckey_serde, sig_serde, u8_to_hex,
 };
 pub use types::{
-    AggSigPartialSignature, ContextFlag, Error, Message, RecoverableSignature, RecoveryId,
-    Secp256k1, Signature,
+    AggSigPartialSignature, ComSignature, ContextFlag, Error, Message, RecoverableSignature,
+    RecoveryId, Secp256k1, Signature,
 };
